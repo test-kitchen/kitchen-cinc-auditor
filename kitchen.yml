@@ -1,0 +1,87 @@
+---
+driver:
+  name: vagrant
+  linked_clone: false
+
+provisioner:
+  name: chef_infra
+  product_name: chef
+  deprecations_as_errors: true
+  chef_license: accept-no-persist
+
+verifier:
+  name: cinc_auditor
+
+platforms:
+  - name: almalinux-9
+  - name: ubuntu-24.04
+
+suites:
+  - name: default
+    verifier:
+      inspec_tests:
+        - test/integration/default
+  - name: profile
+    run_list:
+      - recipe[os_prepare]
+  - name: contains_inspec
+    run_list:
+      - recipe[os_prepare]
+    verifier:
+      inspec_tests:
+        - name: tmp
+          git: https://github.com/nathenharvey/tmp_compliance_profile.git
+  - name: supermarket
+    run_list:
+      - recipe[apt]
+      - recipe[ssh-hardening]
+    verifier:
+      inspec_tests:
+        - name: dev-sec/ssh-baseline
+  - name: backwards
+    run_list:
+      - recipe[os_prepare]
+    verifier:
+      inspec_tests:
+        - https://github.com/nathenharvey/tmp_compliance_profile.git
+  - name: duplicates
+    run_list:
+      - recipe[os_prepare]
+    verifier:
+      inspec_tests:
+        - path: ./test/integration/duplicates
+        - path: ./test/integration/duplicates
+  - name: inputs_inline
+    run_list:
+      - recipe[os_prepare]
+    verifier:
+      inspec_tests:
+        - path: ./test/integration/inputs-inline
+      inputs:
+        user: value_from_kitchen_yml_1
+        password: value_from_kitchen_yml_2
+  - name: inputs_file
+    run_list:
+      - recipe[os_prepare]
+    verifier:
+      inspec_tests:
+        - test/integration/inputs-file
+      input_files:
+        - test/integration/profile-inputs.yml
+  - name: with_waivers
+    verifier:
+      inspec_tests:
+        - test/integration/with_waivers
+      waiver_files:
+        - test/integration/with_waivers/files/waivers.yml
+  # before you are able to use the compliance plugin, you need to run
+  # insecure is only required if you use self-signed certificates
+  # $ inspec compliance login https://compliance.test --user admin --insecure --token ''
+  - name: compliance
+    run_list:
+      - recipe[apt]
+      - recipe[ssh-hardening]
+    verifier:
+      inspec_tests:
+        - name: ssh
+          compliance: base/ssh
