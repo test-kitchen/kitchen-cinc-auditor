@@ -168,7 +168,7 @@ Run the full local check suite through mise:
 mise run test
 ```
 
-That task runs the RSpec suite, RuboCop, a syntax check for the verifier entrypoint, and RubyCritic. The local and CI harnesses target Ruby 3.4 to match Chef Workstation 26.
+That task runs the RSpec suite, RuboCop, a syntax check for the verifier entrypoint, and RubyCritic. CI and release workflows run those checks as separate jobs so RSpec, RuboCop, and syntax can run in parallel; RubyCritic runs after RSpec and consumes the SimpleCov result artifact. The local and CI harnesses target Ruby 3.4 to match Chef Workstation 26.
 
 The spec task writes SimpleCov output to `coverage/`, including `coverage/.resultset.json`. The RubyCritic task consumes that coverage data and enforces a minimum score of 70:
 
