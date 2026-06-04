@@ -27,6 +27,8 @@ The verifier follows the `kitchen-inspec` interface where Cinc Auditor exposes t
 
 This gem targets Ruby 3.4 or newer, matching the Ruby line used by Chef Workstation 26.
 
+The runtime dependency is `cinc-auditor-bin` from the CINC RubyGems server. Cinc Auditor still exposes a compatible `Inspec` Ruby namespace internally; this verifier loads the Cinc distribution shim and keeps that namespace use isolated behind its runtime adapter.
+
 ## Directory structure
 
 By default, suite tests are loaded from `test/integration/<suite>`.
@@ -40,7 +42,7 @@ test
       inspec.yml
 ```
 
-For cookbook-style layouts, `test/recipes` is preferred when it exists. When a suite includes tests for other frameworks, place the Cinc Auditor profile under `test/integration/<suite>/inspec`.
+For cookbook-style layouts, `test/recipes` is preferred when it exists. When a suite includes tests for other frameworks, place the Cinc Auditor profile under `test/integration/<suite>/inspec`, matching the upstream kitchen-inspec layout that Cinc Auditor supports.
 
 ```text
 test

@@ -52,20 +52,17 @@ RSpec.shared_context 'with a Cinc Auditor verifier' do
     suite_path
   end
 
-  def stub_inspec_plugin_runtime(loader_class, input_registry_class)
-    stub_const('Inspec', Module.new)
-    stub_const('Inspec::Plugin', Module.new)
-    stub_const('Inspec::Plugin::V2', Module.new)
-    stub_const('Inspec::Plugin::V2::Loader', loader_class)
-    stub_const('Inspec::InputRegistry', input_registry_class)
+  def stub_cinc_runtime(runtime)
+    allow(verifier).to receive(:runtime).and_return(runtime)
   end
 
-  def stub_inspec_call_runtime(audit_config)
-    stub_const('Inspec', Module.new)
-    stub_const('Inspec::VERSION', '7.1.7')
-    stub_const('Inspec::Log', fake_log_class)
-    stub_const('Inspec::Config', fake_config_class(audit_config))
-    stub_const('Inspec::Runner', Class.new)
+  def fake_cinc_runtime(log_class:, config_class:, runner_class:)
+    double(
+      'Cinc Auditor runtime',
+      log: log_class,
+      config_class: config_class,
+      runner_class: runner_class
+    )
   end
 
   def fake_log_class
