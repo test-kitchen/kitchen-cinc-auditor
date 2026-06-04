@@ -10,6 +10,12 @@ RSpec.describe Kitchen::Verifier::CincAuditor do
       expect(verifier.send(:resolve_config_inspec_tests)).to eq(['https://example.test/profile.tar.gz'])
     end
 
+    it 'keeps nonexistent string entries for Cinc Auditor to report' do
+      config[:inspec_tests] = ['test/integration/missing']
+
+      expect(verifier.send(:resolve_config_inspec_tests)).to eq(['test/integration/missing'])
+    end
+
     it 'normalizes local string paths to profile hashes' do
       profile_path = File.join(kitchen_root, 'profile')
       FileUtils.mkdir_p(profile_path)
@@ -79,6 +85,13 @@ RSpec.describe Kitchen::Verifier::CincAuditor do
     it 'deduplicates configured profiles and discovered local profiles' do
       suite_path = ensure_suite_directory('default')
       config[:inspec_tests] = [suite_path]
+
+      expect(verifier.send(:collect_tests)).to eq([{ path: suite_path }])
+    end
+
+    it 'deduplicates configured profile hashes and discovered local profiles' do
+      suite_path = ensure_suite_directory('default')
+      config[:inspec_tests] = [{ path: suite_path }]
 
       expect(verifier.send(:collect_tests)).to eq([{ path: suite_path }])
     end
