@@ -84,6 +84,18 @@ RSpec.describe Kitchen::Verifier::CincAuditor do
       )
     end
 
+    it 'omits optional authentication options when Kitchen does not supply them' do
+      allow(transport).to receive(:connection_options).and_return(
+        hostname: 'host.example',
+        port: 22,
+        username: 'cinc'
+      )
+
+      options = verifier.send(:runner_options, transport)
+
+      expect(options).not_to include('key_files', 'password', 'forward_agent')
+    end
+
     it 'does not force keys_only true, which would break SSH agent usage' do
       expect(verifier.send(:runner_options, transport)).not_to include('keys_only' => true)
     end
@@ -127,6 +139,25 @@ RSpec.describe Kitchen::Verifier::CincAuditor do
       options = verifier.send(:runner_options, transport, hostname: 'windows.example', port: 5986)
 
       expect(options).to include('host' => '192.168.56.40', 'port' => 5985)
+    end
+
+    it 'detects HTTPS endpoints and accepts the pass password alias' do
+      allow(transport).to receive(:connection_options).and_return(
+        endpoint: 'https://secure-windows.example:5986/wsman',
+        user: 'Administrator',
+        pass: 'secret-from-pass',
+        no_ssl_peer_verification: false
+      )
+
+      options = verifier.send(:runner_options, transport)
+
+      expect(options).to include(
+        'ssl' => true,
+        'self_signed' => false,
+        'host' => 'secure-windows.example',
+        'port' => 5986,
+        'password' => 'secret-from-pass'
+      )
     end
   end
 
