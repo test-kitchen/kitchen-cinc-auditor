@@ -1,0 +1,16 @@
+# frozen_string_literal: true
+
+require 'rbconfig'
+
+command = ARGV.shift
+abort 'usage: script/run_tool COMMAND [ARGS...]' if command.nil?
+
+chef_command = File.join('/opt/chef-workstation/embedded/bin', command)
+
+if ENV['KITCHEN_CINC_AUDITOR_USE_CHEF_WORKSTATION'] == 'true' && File.executable?(chef_command)
+  exec(chef_command, *ARGV)
+elsif command == 'ruby'
+  exec(RbConfig.ruby, *ARGV)
+else
+  exec('bundle', 'exec', command, *ARGV)
+end

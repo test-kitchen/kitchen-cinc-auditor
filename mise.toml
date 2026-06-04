@@ -1,0 +1,27 @@
+[tools]
+ruby = "3.4"
+
+[tasks.spec]
+description = "Run the RSpec suite"
+run = "ruby script/run_tool rspec"
+
+[tasks.rubocop]
+description = "Run RuboCop"
+run = "ruby script/run_tool rubocop --cache false --format simple"
+
+[tasks.syntax]
+description = "Check Ruby syntax"
+run = "ruby script/run_tool ruby -c lib/kitchen/verifier/cinc_auditor.rb"
+
+[tasks.rubycritic]
+description = "Run RubyCritic with the project quality threshold"
+run = "ruby script/run_tool rubycritic --no-browser --format console --minimum-score 70 ."
+
+[tasks.test]
+description = "Run all test and style checks"
+run = [
+  "mise run spec",
+  "mise run rubocop",
+  "mise run syntax",
+  "mise run rubycritic",
+]

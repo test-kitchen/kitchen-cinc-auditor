@@ -1,0 +1,15 @@
+AllCops:
+  NewCops: disable
+  TargetRubyVersion: 3.4
+
+Metrics/BlockLength:
+  Exclude:
+    - spec/**/*.rb
+
+Naming/FileName:
+  Exclude:
+    - lib/kitchen-cinc-auditor.rb
+
+Style/FormatStringToken:
+  Exclude:
+    - spec/**/*.rb
