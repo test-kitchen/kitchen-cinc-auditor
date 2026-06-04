@@ -7,6 +7,7 @@ module Kitchen
     class CincAuditor
       # Resolves local suite profiles and configured profile targets.
       class ProfileCollection
+        INSPEC_FRAMEWORK = 'inspec'
         FRAMEWORKS = %w[inspec serverspec bats pester rspec cucumber minitest bash].freeze
         RUNNER_KEYS = %i[path url git compliance supermarket branch tag ref relative_path supermarket_url].freeze
 
@@ -25,7 +26,7 @@ module Kitchen
 
         def local_suite_files
           suite_path = File.join(config[:test_base_path], config[:suite_name])
-          test_path = legacy_layout?(suite_path) ? File.join(suite_path, 'inspec') : suite_path
+          test_path = legacy_layout?(suite_path) ? framework_profile_path(suite_path) : suite_path
 
           Pathname.new(test_path).exist? ? [{ path: test_path }] : []
         end
@@ -45,6 +46,10 @@ module Kitchen
           end
 
           legacy_mode
+        end
+
+        def framework_profile_path(suite_path)
+          File.join(suite_path, INSPEC_FRAMEWORK)
         end
 
         def configured_profile(entry)

@@ -35,25 +35,30 @@ RSpec.describe Kitchen::Verifier::CincAuditor do
   end
 
   describe '#call' do
-    let(:runner) { instance_double('Inspec::Runner', run: exit_code) }
+    let(:runner) { double('Cinc Auditor runner', run: exit_code) }
     let(:exit_code) { 0 }
     let(:audit_config) { { audit: 'config' } }
+    let(:log_class) { fake_log_class }
+    let(:config_class) { fake_config_class(audit_config) }
+    let(:runner_class) { double('Cinc Auditor runner class', new: runner) }
+    let(:runtime) do
+      fake_cinc_runtime(log_class: log_class, config_class: config_class, runner_class: runner_class)
+    end
 
     before do
-      stub_inspec_call_runtime(audit_config)
+      stub_cinc_runtime(runtime)
       allow(verifier).to receive(:load_plugins)
       allow(runner).to receive(:add_target).and_return([double('profile', name: 'local')])
-      allow(Inspec::Runner).to receive(:new).and_return(runner)
     end
 
     it 'initializes logging, loads plugins, configures the runner, adds targets, and runs' do
       suite_path = ensure_suite_directory('default')
 
-      expect(Inspec::Log).to receive(:init).with($stderr)
+      expect(log_class).to receive(:init).with($stderr)
       expect(verifier).to receive(:load_plugins).ordered
-      expect(Inspec::Config).to receive(:new)
+      expect(config_class).to receive(:new)
         .with(hash_including('backend' => 'local')).ordered.and_return(audit_config)
-      expect(Inspec::Runner).to receive(:new).with(audit_config).ordered.and_return(runner)
+      expect(runner_class).to receive(:new).with(audit_config).ordered.and_return(runner)
       expect(runner).to receive(:add_target)
         .with({ path: suite_path }).ordered.and_return([double('profile', name: 'local')])
       expect(runner).to receive(:run).ordered.and_return(0)
@@ -110,7 +115,7 @@ RSpec.describe Kitchen::Verifier::CincAuditor do
       ENV['CHEF_LICENSE_KEY'] = 'env-chef-key'
       ENV['CHEF_LICENSE_SERVER'] = 'https://env-license.example'
 
-      expect(Inspec::Config).to receive(:new).with(
+      expect(config_class).to receive(:new).with(
         hash_not_including(:chef_license_key, :chef_license_server, 'chef_license_key', 'chef_license_server')
       ).and_return(audit_config)
 

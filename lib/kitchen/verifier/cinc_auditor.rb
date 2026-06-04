@@ -49,13 +49,21 @@ module Kitchen
       end
 
       def build_runner(options)
-        ::Inspec::Log.init($stderr)
-        ::Inspec::Log.level = Kitchen::Util.from_logger_level(logger.level)
+        initialize_runtime_logging
         load_plugins
 
-        audit_config = ::Inspec::Config.new(options)
+        audit_config = audit_config_for(options)
         setup_plugin_config(audit_config)
-        ::Inspec::Runner.new(audit_config)
+        runtime.runner_class.new(audit_config)
+      end
+
+      def initialize_runtime_logging
+        runtime.log.init($stderr)
+        runtime.log.level = Kitchen::Util.from_logger_level(logger.level)
+      end
+
+      def audit_config_for(options)
+        runtime.config_class.new(options)
       end
 
       def load_targets(runner)
@@ -82,16 +90,15 @@ module Kitchen
       end
 
       def load_plugins
-        PluginOptions.new(config, logger).load
+        PluginOptions.new(config, logger, runtime).load
       end
 
       def setup_plugin_config(audit_config)
-        PluginOptions.new(config, logger).merge_into(audit_config)
+        PluginOptions.new(config, logger, runtime).merge_into(audit_config)
       end
 
       def load_needed_dependencies!
-        require 'inspec'
-        require 'inspec/plugin/v2'
+        runtime.load!
       end
 
       def local_suite_files
@@ -114,6 +121,10 @@ module Kitchen
       def profile_collection
         ProfileCollection.new(config, logger)
       end
+
+      def runtime
+        @runtime ||= Runtime.new
+      end
     end
   end
 end
@@ -122,3 +133,4 @@ require 'kitchen/verifier/cinc_auditor/input_options'
 require 'kitchen/verifier/cinc_auditor/plugin_options'
 require 'kitchen/verifier/cinc_auditor/profile_collection'
 require 'kitchen/verifier/cinc_auditor/runner_options'
+require 'kitchen/verifier/cinc_auditor/runtime'

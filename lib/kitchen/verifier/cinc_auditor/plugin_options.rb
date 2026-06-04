@@ -5,15 +5,16 @@ module Kitchen
     class CincAuditor
       # Handles Cinc Auditor plugin loading and plugin configuration merging.
       class PluginOptions
-        def initialize(config, logger)
+        def initialize(config, logger, runtime)
           @config = config
           @logger = logger
+          @runtime = runtime
         end
 
         def load
           return unless config[:load_plugins]
 
-          loader = ::Inspec::Plugin::V2::Loader.new
+          loader = runtime.plugin_loader_class.new
           loader.load_all
           loader.exit_on_load_error
           configure_input_cache
@@ -29,7 +30,7 @@ module Kitchen
 
         private
 
-        attr_reader :config, :logger
+        attr_reader :config, :logger, :runtime
 
         def merge_plugin_config(audit_config)
           config[:plugin_config].each do |plugin_name, plugin_config|
@@ -47,7 +48,7 @@ module Kitchen
         def configure_input_cache
           return unless config[:cache_inputs]
 
-          registry = ::Inspec::InputRegistry.instance
+          registry = runtime.input_registry
           registry.cache_inputs = true if registry.respond_to?(:cache_inputs=)
         end
       end

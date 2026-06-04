@@ -50,13 +50,15 @@ RSpec.describe Kitchen::Verifier::CincAuditor do
   end
 
   describe '#load_plugins' do
-    let(:loader) { instance_double('Inspec::Plugin::V2::Loader', load_all: nil, exit_on_load_error: nil) }
-    let(:loader_class) { double('Inspec::Plugin::V2::Loader class', new: loader) }
-    let(:input_registry) { double('Inspec::InputRegistry', :cache_inputs= => nil) }
-    let(:input_registry_class) { double('Inspec::InputRegistry class', instance: input_registry) }
+    let(:loader) { double('Cinc Auditor plugin loader', load_all: nil, exit_on_load_error: nil) }
+    let(:loader_class) { double('Cinc Auditor plugin loader class', new: loader) }
+    let(:input_registry) { double('Cinc Auditor input registry', :cache_inputs= => nil) }
+    let(:runtime) do
+      double('Cinc Auditor runtime', plugin_loader_class: loader_class, input_registry: input_registry)
+    end
 
     before do
-      stub_inspec_plugin_runtime(loader_class, input_registry_class)
+      stub_cinc_runtime(runtime)
     end
 
     it 'loads v2 plugins and exits on load errors by default' do
@@ -93,7 +95,7 @@ RSpec.describe Kitchen::Verifier::CincAuditor do
 
   describe '#setup_plugin_config' do
     it 'merges plugin config when plugin loading is enabled and supported' do
-      audit_config = double('Inspec::Config')
+      audit_config = double('Cinc Auditor config')
       config[:plugin_config] = { 'json' => { 'enabled' => true } }
 
       expect(audit_config).to receive(:merge_plugin_config).with('json', { 'enabled' => true })
@@ -102,7 +104,7 @@ RSpec.describe Kitchen::Verifier::CincAuditor do
     end
 
     it 'does not merge plugin config when plugin loading is disabled' do
-      audit_config = double('Inspec::Config')
+      audit_config = double('Cinc Auditor config')
       config[:load_plugins] = false
       config[:plugin_config] = { 'json' => { 'enabled' => true } }
 
@@ -112,7 +114,7 @@ RSpec.describe Kitchen::Verifier::CincAuditor do
     end
 
     it 'warns and skips plugin config when the runtime does not support merging' do
-      audit_config = double('Inspec::Config')
+      audit_config = double('Cinc Auditor config')
       config[:plugin_config] = { 'json' => { 'enabled' => true } }
 
       verifier.send(:setup_plugin_config, audit_config)

@@ -8,7 +8,7 @@
 
 ## Summary
 
-Reviewed the current `kitchen-cinc-auditor` implementation after the Chef Workstation 26 baseline update. No critical correctness or security issue was found. The full mise quality gate passes, SimpleCov is configured, RubyCritic is above the requested threshold, the legacy input aliases now fail fast, and the RubyGems publish action is pinned to the reviewed `v0.0.3` commit.
+Reviewed the current `kitchen-cinc-auditor` implementation after the Chef Workstation 26 baseline update and Cinc runtime pass. No critical correctness or security issue was found. The full mise quality gate passes, SimpleCov is configured, RubyCritic is above the requested threshold, the legacy input aliases now fail fast, and the RubyGems publish action is pinned to the reviewed `v0.0.3` commit.
 
 ## Critical Issues
 
@@ -32,14 +32,14 @@ Not applicable. This is a Ruby gem, not a Rails application.
 
 - **Addressed: publish action pinning.** The release workflow now uses `actionshub/publish-ruby-gem@dd4c975d7779bfc2600746c15bbcb0e2b021e6c7` with a workflow comment identifying it as the reviewed `v0.0.3` commit.
 
-No application-level security issue was found in the Ruby verifier code. There is no database, HTML rendering, shell interpolation, or Chef license key/server forwarding path in the verifier itself.
+No application-level security issue was found in the Ruby verifier code. There is no database, HTML rendering, shell interpolation, or Chef license key/server forwarding path in the verifier itself. Runtime loading now goes through a Cinc Auditor adapter that loads the Cinc distribution shim before the shared compatible Ruby runtime.
 
 ## Test Coverage
 
 SimpleCov is configured and produces `coverage/.resultset.json`.
 
-- Line coverage: **98.98%**
-- Branch coverage: **95.83%**
+- Line coverage: **97.67%**
+- Branch coverage: **92.59%**
 - Files with under 90% line coverage among loaded `lib/` files: none
 
 The uncovered dependency-loading hook is intentionally stubbed in specs to avoid loading the full Cinc Auditor runtime.
@@ -48,19 +48,19 @@ The uncovered dependency-loading hook is intentionally stubbed in specs to avoid
 
 ### RubyCritic Summary
 
-- **Overall score**: 75.66
+- **Overall score**: 75.77
 - **Threshold**: 70, enforced by `mise run rubycritic`
 - **Result**: passed
 
 ### SimpleCov Summary
 
-- **Total Coverage**: 98.98% line, 95.83% branch
+- **Total Coverage**: 97.67% line, 92.59% branch
 - **Coverage artifact**: `coverage/.resultset.json`
 
 ### Other Checks
 
 - `mise run test`: passed
-- RSpec: 50 examples, 0 failures
+- RSpec: 54 examples, 0 failures
 - RuboCop: 20 files inspected, no offenses
 - Syntax: `lib/kitchen/verifier/cinc_auditor.rb` OK
 - Workflow YAML: `.github/workflows/ci.yml` and `.github/workflows/release.yml` parse with `yq`
@@ -77,3 +77,4 @@ The uncovered dependency-loading hook is intentionally stubbed in specs to avoid
 - Transport behavior is split into focused collaborators rather than living entirely in the main verifier.
 - Tests cover the parity matrix that matters: inputs, waivers, profile discovery, runner lifecycle, exit codes, unsupported transports, and SSH/WinRM/Exec/Dokken/Docker CLI option mapping.
 - Ruby 3.4 is now explicit in the gemspec, Gemfile, mise config, CI, release checks, and publish action.
+- Cinc Auditor 7.1.7 is now the minimum runtime distribution, and nested suite profile discovery keeps the upstream-compatible `inspec` directory layout.

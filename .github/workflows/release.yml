@@ -31,12 +31,11 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  publish:
-    name: Publish gem
+  spec:
+    name: RSpec
     runs-on: ubuntu-latest
     needs: release
     if: needs.release.outputs.release_created == 'true'
-    environment: rubygems
     permissions:
       contents: read
     steps:
@@ -54,10 +53,112 @@ jobs:
       - name: Set up mise
         uses: jdx/mise-action@v2
 
-      - name: Run checks
+      - name: Run RSpec
         env:
           KITCHEN_CINC_AUDITOR_USE_BUNDLE: "true"
-        run: mise run test
+        run: mise run spec
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-simplecov-resultset
+          path: coverage/.resultset.json
+          include-hidden-files: true
+          if-no-files-found: error
+
+  static:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    needs: release
+    if: needs.release.outputs.release_created == 'true'
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: RuboCop
+            task: rubocop
+          - name: Syntax
+            task: syntax
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release.outputs.tag_name }}
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+
+      - name: Set up mise
+        uses: jdx/mise-action@v2
+
+      - name: Run ${{ matrix.name }}
+        env:
+          KITCHEN_CINC_AUDITOR_USE_BUNDLE: "true"
+        run: mise run ${{ matrix.task }}
+
+  rubycritic:
+    name: RubyCritic
+    runs-on: ubuntu-latest
+    needs:
+      - release
+      - spec
+    if: needs.release.outputs.release_created == 'true'
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release.outputs.tag_name }}
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+
+      - name: Set up mise
+        uses: jdx/mise-action@v2
+
+      - name: Download coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: release-simplecov-resultset
+          path: coverage
+
+      - name: Run RubyCritic
+        env:
+          KITCHEN_CINC_AUDITOR_USE_BUNDLE: "true"
+        run: mise run rubycritic
+
+  publish:
+    name: Publish gem
+    runs-on: ubuntu-latest
+    needs:
+      - release
+      - spec
+      - static
+      - rubycritic
+    if: needs.release.outputs.release_created == 'true'
+    environment: rubygems
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release.outputs.tag_name }}
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
 
       - name: Publish to RubyGems.org
         # actionshub/publish-ruby-gem v0.0.3
