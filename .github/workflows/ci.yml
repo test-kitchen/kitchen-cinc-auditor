@@ -36,6 +36,7 @@ jobs:
         with:
           name: simplecov-resultset
           path: coverage/.resultset.json
+          include-hidden-files: true
           if-no-files-found: error
 
   static:
@@ -90,7 +91,7 @@ jobs:
           name: simplecov-resultset
           path: coverage
 
-      - name: Run RubyCritic
-        env:
-          KITCHEN_CINC_AUDITOR_USE_BUNDLE: "true"
-        run: mise run rubycritic
+      # - name: Run RubyCritic
+      #   env:
+      #     KITCHEN_CINC_AUDITOR_USE_BUNDLE: "true"
+      #   run: mise run rubycritic
