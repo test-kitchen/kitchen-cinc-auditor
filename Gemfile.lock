@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    kitchen-cinc-auditor (0.1.0)
+    kitchen-cinc-auditor (0.2.0)
       cinc-auditor-bin (>= 7.1.7, < 8.0)
       hashie (>= 3.4, < 6.0)
       test-kitchen (>= 2.7, < 5)
