@@ -47,7 +47,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.4"
+          ruby-version: "4.0.5"
           bundler-cache: true
 
       - name: Set up mise
@@ -90,7 +90,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.4"
+          ruby-version: "4.0.5"
           bundler-cache: true
 
       - name: Set up mise
@@ -119,7 +119,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.4"
+          ruby-version: "4.0.5"
           bundler-cache: true
 
       - name: Set up mise
@@ -157,7 +157,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.4"
+          ruby-version: "4.0.5"
           bundler-cache: true
 
       - name: Publish to RubyGems.org
