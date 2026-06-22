@@ -24,7 +24,7 @@ jobs:
           bundler-cache: true
 
       - name: Set up mise
-        uses: jdx/mise-action@v2
+        uses: jdx/mise-action@v4
 
       - name: Run RSpec
         env:
@@ -61,7 +61,7 @@ jobs:
           bundler-cache: true
 
       - name: Set up mise
-        uses: jdx/mise-action@v2
+        uses: jdx/mise-action@v4
 
       - name: Run ${{ matrix.name }}
         env:
@@ -83,7 +83,7 @@ jobs:
           bundler-cache: true
 
       - name: Set up mise
-        uses: jdx/mise-action@v2
+        uses: jdx/mise-action@v4
 
       - name: Download coverage
         uses: actions/download-artifact@v4
