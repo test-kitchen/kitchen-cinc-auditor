@@ -11,18 +11,18 @@ module Kitchen
       class Runtime
         def load!
           with_warnings_suppressed do
-            require 'inspec/dist'
-            require 'inspec'
-            require 'inspec/plugin/v2'
+            require "inspec/dist"
+            require "inspec"
+            require "inspec/plugin/v2"
           end
         end
 
         def product_name
-          dist_const(:PRODUCT_NAME) || 'Cinc Auditor'
+          dist_const(:PRODUCT_NAME) || "Cinc Auditor"
         end
 
         def executable_name
-          dist_const(:EXEC_NAME) || 'cinc-auditor'
+          dist_const(:EXEC_NAME) || "cinc-auditor"
         end
 
         def version

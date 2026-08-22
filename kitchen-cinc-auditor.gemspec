@@ -25,7 +25,7 @@ Gem::Specification.new do |spec|
 
   spec.files = `git ls-files -z`.split("\x0").grep(%r{\A(?:LICENSE|README\.md|lib/)})
   spec.require_paths = ['lib']
-  spec.required_ruby_version = '>= 3.1'
+  spec.required_ruby_version = ">= 3.1"
 
   spec.add_dependency 'cinc-auditor-bin', '>= 7.1.7', '< 8.0'
   spec.add_dependency 'hashie', '>= 3.4', '< 6.0'

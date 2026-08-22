@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'hashie'
+require "hashie"
 
 module Kitchen
   module Verifier
@@ -23,7 +23,7 @@ module Kitchen
 
         def raise_legacy_input_error(legacy_key, replacement_key)
           raise Kitchen::UserError,
-                "The #{legacy_key} verifier option is no longer supported; use #{replacement_key} instead"
+            "The #{legacy_key} verifier option is no longer supported; use #{replacement_key} instead"
         end
 
         def apply_file_inputs(options, audit_config)

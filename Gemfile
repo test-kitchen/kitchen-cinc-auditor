@@ -9,3 +9,7 @@ source 'https://rubygems.cinc.sh' do
 end
 
 gemspec
+
+group :cookstyle do
+  gem "cookstyle"
+end

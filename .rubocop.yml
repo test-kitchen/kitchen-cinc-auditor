@@ -1,6 +1,14 @@
+---
+require:
+  - cookstyle/chefstyle
+
 AllCops:
-  NewCops: disable
-  TargetRubyVersion: 3.4
+  TargetRubyVersion: 3.1
+  Include:
+    - "**/*.rb"
+  Exclude:
+    - "vendor/**/*"
+    - "spec/**/*"
 
 Metrics/BlockLength:
   Exclude:

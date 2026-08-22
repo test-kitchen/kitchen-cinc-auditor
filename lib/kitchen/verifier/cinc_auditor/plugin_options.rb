@@ -41,7 +41,7 @@ module Kitchen
         def warn_plugin_config_unsupported
           logger.warn(
             "kitchen-cinc-auditor: skipping 'plugin_config' because this " \
-            'Cinc Auditor version does not expose plugin config merging'
+            "Cinc Auditor version does not expose plugin config merging"
           )
         end
 

@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
-require 'pathname'
+require "pathname" unless defined?(Pathname)
 
 module Kitchen
   module Verifier
     class CincAuditor
       # Resolves local suite profiles and configured profile targets.
       class ProfileCollection
-        INSPEC_FRAMEWORK = 'inspec'
-        FRAMEWORKS = %w[inspec serverspec bats pester rspec cucumber minitest bash].freeze
-        RUNNER_KEYS = %i[path url git compliance supermarket branch tag ref relative_path supermarket_url].freeze
+        INSPEC_FRAMEWORK = "inspec"
+        FRAMEWORKS = %w{inspec serverspec bats pester rspec cucumber minitest bash}.freeze
+        RUNNER_KEYS = %i{path url git compliance supermarket branch tag ref relative_path supermarket_url}.freeze
 
         def initialize(config, logger)
           @config = config
