@@ -8,8 +8,7 @@ source 'https://rubygems.cinc.sh' do
   gem 'cinc-auditor-bin'
 end
 
-gemspec
-
+gemspec development_group: :test
 group :cookstyle do
   gem "cookstyle"
 end
