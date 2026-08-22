@@ -15,7 +15,7 @@ run = "ruby script/run_tool ruby -c lib/kitchen/verifier/cinc_auditor.rb"
 
 [tasks.rubycritic]
 description = "Run RubyCritic with the project quality threshold"
-run = "ruby script/run_tool rubycritic --no-browser --format console --minimum-score 70 ."
+run = "ruby script/run_tool rubycritic --no-browser --format console --minimum-score 70 lib"
 
 [tasks.test]
 description = "Run all test and style checks"

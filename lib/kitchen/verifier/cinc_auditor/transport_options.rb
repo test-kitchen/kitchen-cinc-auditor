@@ -29,24 +29,24 @@ module Kitchen
         def build_dokken(state)
           kitchen = connection_options(state)
           options = docker_connection_options(state[:runner_container][:Id], kitchen)
-          logger.debug("Connect to Container: #{options['host']}")
+          logger.debug("Connect to Container: #{options["host"]}")
           options
         end
 
         def build_exec(_state)
           {
-            'backend' => 'local',
-            'logger' => logger
+            "backend" => "local",
+            "logger" => logger,
           }
         end
 
         def build_dockercli(state)
           options = {
-            'backend' => 'docker',
-            'logger' => logger,
-            'host' => state[:container_id]
+            "backend" => "docker",
+            "logger" => logger,
+            "host" => state[:container_id],
           }
-          logger.debug("Connect to Container: #{options['host']}")
+          logger.debug("Connect to Container: #{options["host"]}")
           options
         end
 
@@ -55,7 +55,7 @@ module Kitchen
         attr_reader :instance, :config, :logger
 
         def verifier_name
-          'cinc_auditor'
+          "cinc_auditor"
         end
 
         def connection_options(state)
@@ -64,13 +64,13 @@ module Kitchen
 
         def docker_connection_options(host, kitchen)
           {
-            'backend' => 'docker',
-            'logger' => logger,
-            'host' => host,
-            'connection_timeout' => kitchen[:timeout],
-            'connection_retries' => kitchen[:connection_retries],
-            'connection_retry_sleep' => kitchen[:connection_retry_sleep],
-            'max_wait_until_ready' => kitchen[:max_wait_until_ready]
+            "backend" => "docker",
+            "logger" => logger,
+            "host" => host,
+            "connection_timeout" => kitchen[:timeout],
+            "connection_retries" => kitchen[:connection_retries],
+            "connection_retry_sleep" => kitchen[:connection_retry_sleep],
+            "max_wait_until_ready" => kitchen[:max_wait_until_ready],
           }
         end
       end
@@ -78,5 +78,5 @@ module Kitchen
   end
 end
 
-require 'kitchen/verifier/cinc_auditor/transport_options/ssh'
-require 'kitchen/verifier/cinc_auditor/transport_options/winrm'
+require "kitchen/verifier/cinc_auditor/transport_options/ssh"
+require "kitchen/verifier/cinc_auditor/transport_options/winrm"

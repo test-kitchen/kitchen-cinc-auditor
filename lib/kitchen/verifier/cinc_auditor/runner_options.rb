@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'kitchen/verifier/cinc_auditor/transport_options'
+require "kitchen/verifier/cinc_auditor/transport_options"
 
 module Kitchen
   module Verifier
@@ -34,16 +34,16 @@ module Kitchen
         end
 
         def apply_display_options(options)
-          options['color'] = config[:color].nil? || config[:color]
-          set_if_configured(options, 'format', :format)
-          set_formatted_if_configured(options, 'output', :output)
-          set_if_configured(options, 'profiles_path', :profiles_path)
+          options["color"] = config[:color].nil? || config[:color]
+          set_if_configured(options, "format", :format)
+          set_formatted_if_configured(options, "output", :output)
+          set_if_configured(options, "profiles_path", :profiles_path)
         end
 
         def apply_reporters(options)
           return if config[:reporter].nil?
 
-          options['reporter'] = config[:reporter].map do |item|
+          options["reporter"] = config[:reporter].map do |item|
             format_template(item)
           end
         end

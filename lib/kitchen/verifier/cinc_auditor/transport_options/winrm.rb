@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'uri'
+require "uri" unless defined?(URI)
 
 module Kitchen
   module Verifier
@@ -31,27 +31,27 @@ module Kitchen
 
           def base_options(endpoint)
             {
-              'backend' => 'winrm',
-              'logger' => logger,
-              'ssl' => endpoint.scheme == 'https',
-              'host' => config[:host] || endpoint.hostname,
-              'port' => config[:port] || endpoint.port
+              "backend" => "winrm",
+              "logger" => logger,
+              "ssl" => endpoint.scheme == "https",
+              "host" => config[:host] || endpoint.hostname,
+              "port" => config[:port] || endpoint.port,
             }
           end
 
           def auth_options(kitchen)
             {
-              'self_signed' => kitchen[:no_ssl_peer_verification],
-              'user' => kitchen[:user],
-              'password' => kitchen[:password] || kitchen[:pass]
+              "self_signed" => kitchen[:no_ssl_peer_verification],
+              "user" => kitchen[:user],
+              "password" => kitchen[:password] || kitchen[:pass],
             }
           end
 
           def retry_options(kitchen)
             {
-              'connection_retries' => kitchen[:connection_retries],
-              'connection_retry_sleep' => kitchen[:connection_retry_sleep],
-              'max_wait_until_ready' => kitchen[:max_wait_until_ready]
+              "connection_retries" => kitchen[:connection_retries],
+              "connection_retry_sleep" => kitchen[:connection_retry_sleep],
+              "max_wait_until_ready" => kitchen[:max_wait_until_ready],
             }
           end
         end

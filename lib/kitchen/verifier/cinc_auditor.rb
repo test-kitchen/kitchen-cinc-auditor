@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'kitchen/transport/ssh'
-require 'kitchen/transport/winrm'
-require 'kitchen/verifier/base'
-require 'kitchen/verifier/cinc_auditor_version'
+require "kitchen/transport/ssh"
+require "kitchen/transport/winrm"
+require "kitchen/verifier/base"
+require "kitchen/verifier/cinc_auditor_version"
 
 module Kitchen
   module Verifier
@@ -21,14 +21,14 @@ module Kitchen
       def finalize_config!(instance)
         super
 
-        recipe_tests = File.join(config[:kitchen_root], 'test', 'recipes')
+        recipe_tests = File.join(config[:kitchen_root], "test", "recipes")
         config[:test_base_path] = recipe_tests if File.directory?(recipe_tests)
 
         self
       end
 
       def call(state)
-        logger.debug('Initialize Cinc Auditor')
+        logger.debug("Initialize Cinc Auditor")
 
         runner = build_runner(run_options(state))
         load_targets(runner)
@@ -129,8 +129,8 @@ module Kitchen
   end
 end
 
-require 'kitchen/verifier/cinc_auditor/input_options'
-require 'kitchen/verifier/cinc_auditor/plugin_options'
-require 'kitchen/verifier/cinc_auditor/profile_collection'
-require 'kitchen/verifier/cinc_auditor/runner_options'
-require 'kitchen/verifier/cinc_auditor/runtime'
+require "kitchen/verifier/cinc_auditor/input_options"
+require "kitchen/verifier/cinc_auditor/plugin_options"
+require "kitchen/verifier/cinc_auditor/profile_collection"
+require "kitchen/verifier/cinc_auditor/runner_options"
+require "kitchen/verifier/cinc_auditor/runtime"
