@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/test-kitchen/kitchen-cinc-auditor/compare/kitchen-cinc-auditor/v0.2.0...kitchen-cinc-auditor/v0.2.1) (2026-08-22)
+
+
+### Documentation
+
+* rewrite README for new users and split contributor docs ([#15](https://github.com/test-kitchen/kitchen-cinc-auditor/issues/15)) ([0dde230](https://github.com/test-kitchen/kitchen-cinc-auditor/commit/0dde2303f97e234ea82ee5c9be168abbfd27cb44))
+
 ## [0.2.0](https://github.com/test-kitchen/kitchen-cinc-auditor/compare/kitchen-cinc-auditor-v0.1.0...kitchen-cinc-auditor/v0.2.0) (2026-06-04)
 
 
