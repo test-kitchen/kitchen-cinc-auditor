@@ -1,10 +1,23 @@
 # kitchen-cinc-auditor
 
-A Test Kitchen verifier for Cinc Auditor.
+A [Test Kitchen](https://kitchen.ci/) verifier for [Cinc
+Auditor](https://cinc.sh/start/auditor/), the community distribution of InSpec.
+It runs compliance profiles and controls against your test instances after they
+converge.
+
+The verifier follows the `kitchen-inspec` interface wherever Cinc Auditor
+exposes the same runtime API, so existing profiles and most existing verifier
+configuration work unchanged.
+
+## Requirements
+
+- Ruby 3.1 or later
+- `cinc-auditor-bin`, published on the CINC RubyGems server
 
 ## Installation
 
-Cinc Auditor gems are published from the CINC RubyGems server, so include that source in your bundle:
+Cinc Auditor gems are published from the CINC RubyGems server, so that source
+has to be included in your bundle:
 
 ```ruby
 source "https://rubygems.org"
@@ -16,22 +29,52 @@ end
 gem "kitchen-cinc-auditor"
 ```
 
-## Usage
+Then:
 
-```yaml
-verifier:
-  name: cinc_auditor
+```sh
+bundle install
 ```
 
-The verifier follows the `kitchen-inspec` interface where Cinc Auditor exposes the same runtime API.
+## Quick Start
 
-This gem targets Ruby 3.4 or newer, matching the Ruby line used by Chef Workstation 26.
+Point the verifier at Cinc Auditor and put your controls in
+`test/integration/<suite>`:
 
-The runtime dependency is `cinc-auditor-bin` from the CINC RubyGems server. Cinc Auditor still exposes a compatible `Inspec` Ruby namespace internally; this verifier loads the Cinc distribution shim and keeps that namespace use isolated behind its runtime adapter.
+```yaml
+---
+driver:
+  name: vagrant
+
+provisioner:
+  name: cinc_infra
+
+verifier:
+  name: cinc_auditor
+
+platforms:
+  - name: ubuntu-22.04
+
+suites:
+  - name: default
+    run_list:
+      - recipe[my_cookbook::default]
+```
+
+With `test/integration/default/controls/example.rb` in place:
+
+```sh
+cinc kitchen verify
+```
+
+Or run the whole cycle:
+
+```sh
+cinc kitchen test
+```
 
 ## Directory structure
 
-By default, suite tests are loaded from `test/integration/<suite>`.
+By default, suite tests are loaded from `test/integration/<suite>`:
 
 ```text
 test
@@ -42,7 +85,11 @@ test
       inspec.yml
 ```
 
-For cookbook-style layouts, `test/recipes` is preferred when it exists. When a suite includes tests for other frameworks, place the Cinc Auditor profile under `test/integration/<suite>/inspec`, matching the upstream kitchen-inspec layout that Cinc Auditor supports.
+For cookbook-style layouts, `test/recipes` is preferred when it exists.
+
+When a suite includes tests for more than one framework, put the Cinc Auditor
+profile under `test/integration/<suite>/inspec`, matching the upstream
+kitchen-inspec layout that Cinc Auditor supports:
 
 ```text
 test
@@ -55,32 +102,73 @@ test
         example_spec.rb
 ```
 
-## Connection options
+## Configuration
 
-SSH, WinRM, Exec, Dokken, and Docker CLI transports are supported. Host and port normally come from Test Kitchen state, but can be overridden:
+All options below are set under the `verifier:` key in `kitchen.yml`, or per
+suite under `suites[].verifier:`.
 
-```yaml
-verifier:
-  name: cinc_auditor
-  host: 192.168.56.40
-  port: 22
-```
+### Profiles and controls
 
-SSH sudo, proxy, and forwarding settings are passed through to the Cinc Auditor runner:
+| Option | Default | Description |
+| --- | --- | --- |
+| `inspec_tests` | `[]` | Profiles to run. Accepts local, URL, Git, Supermarket, and Compliance references, matching the profile targets `inspec exec` accepts. |
+| `controls` | *all* | Array of control IDs to run, instead of every control in the profile. |
+| `suite_name` | the suite name | Name of the suite directory searched under the test base path. |
 
-```yaml
-verifier:
-  name: cinc_auditor
-  sudo: true
-  sudo_command: sudo -E
-  sudo_options: -H
-  proxy_command: ssh gateway -W %h:%p
-  forward_agent: true
-```
+### Inputs and waivers
 
-## Profiles and controls
+| Option | Default | Description |
+| --- | --- | --- |
+| `inputs` | *unset* | Hash of inline inputs passed to the profile. |
+| `input_files` | *unset* | Array of YAML files containing inputs. |
+| `waiver_files` | *unset* | Array of waiver files applied to the run. |
+| `cache_inputs` | *runtime default* | Cache inputs in the Cinc Auditor input registry. |
 
-Local, URL, Git, Supermarket, and Compliance profile references are accepted through `inspec_tests`, matching the profile target shapes accepted by `inspec exec`.
+Legacy `attributes` and `attrs` aliases are no longer supported; use `inputs`
+and `input_files`.
+
+### Output and reporting
+
+`reporter` entries and `output` support `%{platform}` and `%{suite}`
+replacements.
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `reporter` | *runtime default* | Array of reporters, e.g. `cli`, or `junit:path/results/%{platform}.xml`. |
+| `output` | *unset* | Path to write results to. |
+| `format` | *unset* | Output format passed to the runner. |
+| `color` | `true` | Colourise the output. |
+| `profiles_path` | *unset* | Path used to resolve profile dependencies. |
+
+### Connection
+
+SSH, WinRM, Exec, Dokken, and Docker CLI transports are supported. Host and port
+normally come from Test Kitchen state and only need setting to override it.
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `host` | *from Test Kitchen state* | Host to connect to. |
+| `port` | *from Test Kitchen state* | Port to connect to. |
+| `sudo` | *transport default* | Run the profile under sudo. |
+| `sudo_command` | *transport default* | Command used to elevate, e.g. `sudo -E`. |
+| `sudo_options` | *transport default* | Extra options passed to sudo, e.g. `-H`. |
+| `proxy_command` | *unset* | SSH proxy command, e.g. `ssh gateway -W %h:%p`. |
+| `forward_agent` | *transport default* | Forward the SSH agent to the instance. |
+
+### Plugins and caching
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `load_plugins` | `true` | Load Cinc Auditor plugins before config validation. |
+| `plugin_config` | `{}` | Plugin configuration, merged when the installed runtime supports it. |
+| `backend_cache` | `true` | Cache backend command and file results during a run. |
+
+Chef license key settings are intentionally not forwarded. Cinc Auditor does not
+need them.
+
+## Examples
+
+### Profiles from several sources
 
 ```yaml
 suites:
@@ -96,11 +184,11 @@ suites:
         - sshd-46
 ```
 
-If both local suite tests and configured profiles exist, local suite tests are added first and configured `inspec_tests` are added afterward. Duplicate local paths are deduplicated.
+When both local suite tests and configured profiles exist, the local suite tests
+are added first and the configured `inspec_tests` afterwards. Duplicate local
+paths are deduplicated.
 
-## Inputs and waivers
-
-Inline inputs and input files are passed to Cinc Auditor using the current runtime option names. Legacy `attributes` and `attrs` aliases are no longer supported; use `inputs` and `input_files`.
+### Inputs and waivers
 
 ```yaml
 verifier:
@@ -114,9 +202,7 @@ verifier:
     - test/integration/waivers.yml
 ```
 
-## Output and reporting
-
-Reporter and output paths support `%{platform}` and `%{suite}` replacements.
+### JUnit output for CI
 
 ```yaml
 verifier:
@@ -126,12 +212,21 @@ verifier:
     - junit:path/to/results/%{platform}_%{suite}_cinc_auditor.xml
   output: /tmp/%{platform}_%{suite}.json
   format: json
-  profiles_path: /tmp/cinc-auditor-profiles
 ```
 
-## Plugins and caching
+### Running over sudo, through a bastion
 
-Plugins are loaded by default before Cinc Auditor config validation. Plugin config is merged when the installed Cinc Auditor runtime supports it.
+```yaml
+verifier:
+  name: cinc_auditor
+  sudo: true
+  sudo_command: sudo -E
+  sudo_options: -H
+  proxy_command: ssh gateway -W %h:%p
+  forward_agent: true
+```
+
+### Plugins
 
 ```yaml
 verifier:
@@ -142,46 +237,46 @@ verifier:
       example_setting: value
 ```
 
-Input caching follows the compatible Cinc Auditor input registry behavior:
+### Disabling caching
 
 ```yaml
 verifier:
   name: cinc_auditor
   cache_inputs: false
-```
-
-Backend command/file caching is enabled by default and can be disabled:
-
-```yaml
-verifier:
-  name: cinc_auditor
   backend_cache: false
 ```
 
-Chef license key settings are intentionally not forwarded. Cinc Auditor does not need them.
+## Using with Chef
 
-## Development
+This verifier runs Cinc Auditor, and is the Cinc counterpart to
+`kitchen-inspec`.
 
-Run the full local check suite through mise:
+If you use [Chef Workstation](https://www.chef.io/downloads/tools/workstation)
+rather than [Cinc Workstation](https://cinc.sh/start/workstation/), you can
+still use this verifier — run `kitchen` instead of `cinc kitchen`, and pair it
+with whichever provisioner you use:
 
-```shell
-mise run test
+```yaml
+provisioner:
+  name: chef_infra
+
+verifier:
+  name: cinc_auditor
 ```
 
-That task runs the RSpec suite, RuboCop, a syntax check for the verifier entrypoint, and RubyCritic. CI and release workflows run those checks as separate jobs so RSpec, RuboCop, and syntax can run in parallel; RubyCritic runs after RSpec and consumes the SimpleCov result artifact. The local and CI harnesses target Ruby 3.4 to match Chef Workstation 26.
+If you would rather run InSpec itself, use `kitchen-inspec` with `verifier:
+name: inspec`. Profiles are compatible either way, and the verifier options
+above are modelled on the same interface.
 
-The spec task writes SimpleCov output to `coverage/`, including `coverage/.resultset.json`. The RubyCritic task consumes that coverage data and enforces a minimum score of 70:
+## Contributing
 
-```shell
-mise run rubycritic
-```
-
-## Release process
-
-Releases are managed by release-please. Conventional commits merged to `main` update a release PR; merging that PR updates `CHANGELOG.md`, bumps `lib/kitchen/verifier/cinc_auditor_version.rb`, creates a GitHub release, and publishes the tagged gem.
-
-Publishing uses `actionshub/publish-ruby-gem` with Ruby 3.4. Configure a `rubygems` environment with a `RUBYGEMS_AUTH_TOKEN` secret that has RubyGems.org push access for `kitchen-cinc-auditor`. Add `RELEASE_PLEASE_TOKEN` if release-please PRs should trigger ordinary CI checks; otherwise the workflow falls back to `GITHUB_TOKEN`.
+Bug reports and pull requests are welcome on
+[GitHub](https://github.com/test-kitchen/kitchen-cinc-auditor). See
+[CONTRIBUTING.md](CONTRIBUTING.md) for development setup, how to run the checks,
+and the release process.
 
 ## License compatibility
 
-This verifier is Apache-2.0 licensed. `kitchen-inspec` is also Apache-2.0 licensed and was used as a behavioral compatibility reference for Test Kitchen verifier options and profile discovery.
+This verifier is Apache-2.0 licensed. `kitchen-inspec` is also Apache-2.0
+licensed and was used as a behavioural compatibility reference for Test Kitchen
+verifier options and profile discovery.
