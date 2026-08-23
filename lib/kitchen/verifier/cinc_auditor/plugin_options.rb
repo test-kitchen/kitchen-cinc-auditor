@@ -5,12 +5,18 @@ module Kitchen
     class CincAuditor
       # Handles Cinc Auditor plugin loading and plugin configuration merging.
       class PluginOptions
+        # @param config [Hash] the verifier configuration
+        # @param logger [Kitchen::Logger] where to report
+        # @param runtime [Runtime] the loaded Cinc Auditor runtime
         def initialize(config, logger, runtime)
           @config = config
           @logger = logger
           @runtime = runtime
         end
 
+        # Loads all Cinc Auditor plugins, unless +load_plugins+ is disabled.
+        #
+        # @return [void]
         def load
           return unless config[:load_plugins]
 
@@ -20,6 +26,13 @@ module Kitchen
           configure_input_cache
         end
 
+        # Merges +plugin_config+ into the runner config.
+        #
+        # Older Cinc Auditor versions have no plugin-config merging, so this
+        # warns and skips rather than failing the run.
+        #
+        # @param audit_config [Object] the Cinc Auditor config object
+        # @return [void]
         def merge_into(audit_config)
           return unless config[:load_plugins]
 
@@ -32,12 +45,15 @@ module Kitchen
 
         attr_reader :config, :logger, :runtime
 
+        # @param audit_config [Object] the Cinc Auditor config object
+        # @return [void]
         def merge_plugin_config(audit_config)
           config[:plugin_config].each do |plugin_name, plugin_config|
             audit_config.merge_plugin_config(plugin_name, plugin_config)
           end
         end
 
+        # @return [void]
         def warn_plugin_config_unsupported
           logger.warn(
             "kitchen-cinc-auditor: skipping 'plugin_config' because this " \
@@ -45,6 +61,10 @@ module Kitchen
           )
         end
 
+        # Turns on input caching when both +cache_inputs+ is set and the
+        # runtime's registry supports it.
+        #
+        # @return [void]
         def configure_input_cache
           return unless config[:cache_inputs]
 
