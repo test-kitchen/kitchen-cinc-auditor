@@ -8,12 +8,19 @@ module Kitchen
       class TransportOptions
         # Builds Cinc Auditor runner options for WinRM transports.
         class Winrm
+          # @param instance [Kitchen::Instance] the instance under test
+          # @param config [Hash] the verifier configuration
+          # @param logger [Kitchen::Logger] where to report
           def initialize(instance, config, logger)
             @instance = instance
             @config = config
             @logger = logger
           end
 
+          # Builds the WinRM runner options.
+          #
+          # @param state [Hash] instance state
+          # @return [Hash] runner options for the WinRM backend
           def build(state)
             kitchen = connection_options(state)
             endpoint = URI(kitchen[:endpoint])
@@ -25,10 +32,19 @@ module Kitchen
 
           attr_reader :instance, :config, :logger
 
+          # @param state [Hash] instance state
+          # @return [Hash] the transport's resolved settings, safe to mutate
           def connection_options(state)
             instance.transport.send(:connection_options, state).dup
           end
 
+          # Backend, host, and port, derived from the transport's endpoint URL.
+          #
+          # TLS is inferred from the endpoint's scheme rather than configured
+          # separately.
+          #
+          # @param endpoint [URI] the transport's WinRM endpoint
+          # @return [Hash]
           def base_options(endpoint)
             {
               "backend" => "winrm",
@@ -39,6 +55,10 @@ module Kitchen
             }
           end
 
+          # User, password, and self-signed certificate tolerance.
+          #
+          # @param kitchen [Hash] the transport's connection settings
+          # @return [Hash]
           def auth_options(kitchen)
             {
               "self_signed" => kitchen[:no_ssl_peer_verification],
@@ -47,6 +67,10 @@ module Kitchen
             }
           end
 
+          # Retry and wait settings carried over from the transport.
+          #
+          # @param kitchen [Hash] the transport's connection settings
+          # @return [Hash]
           def retry_options(kitchen)
             {
               "connection_retries" => kitchen[:connection_retries],

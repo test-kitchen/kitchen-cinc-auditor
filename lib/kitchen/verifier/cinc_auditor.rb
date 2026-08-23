@@ -5,7 +5,9 @@ require "kitchen/transport/winrm"
 require "kitchen/verifier/base"
 require "kitchen/verifier/cinc_auditor_version"
 
+# Test Kitchen's top-level namespace.
 module Kitchen
+  # Test Kitchen's verifier plugins.
   module Verifier
     # Test Kitchen verifier for Cinc Auditor profiles.
     class CincAuditor < Kitchen::Verifier::Base
@@ -18,6 +20,10 @@ module Kitchen
       default_config :plugin_config, {}
       default_config :backend_cache, true
 
+      # Points the verifier at `test/recipes` when that directory exists.
+      #
+      # @param instance [Kitchen::Instance] the instance being configured
+      # @return [self]
       def finalize_config!(instance)
         super
 
@@ -27,6 +33,11 @@ module Kitchen
         self
       end
 
+      # Runs the Cinc Auditor profiles against the instance.
+      #
+      # @param state [Hash] instance state describing how to connect
+      # @return [void]
+      # @raise [Kitchen::ActionFailed] if the run reports a failing exit code
       def call(state)
         logger.debug("Initialize Cinc Auditor")
 
@@ -37,6 +48,10 @@ module Kitchen
 
       private
 
+      # Builds the full runner option hash for this run.
+      #
+      # @param state [Hash] instance state
+      # @return [Hash] runner options, inputs applied
       def run_options(state)
         runner_options_for_state(state).tap do |options|
           logger.debug("Options #{options.inspect}")
@@ -44,10 +59,16 @@ module Kitchen
         end
       end
 
+      # @param state [Hash] instance state
+      # @return [Hash] runner options for the configured transport
       def runner_options_for_state(state)
         runner_options(instance.transport, state, instance.platform.name, instance.suite.name)
       end
 
+      # Loads the runtime, its plugins, and builds a runner.
+      #
+      # @param options [Hash] runner options
+      # @return [Object] a Cinc Auditor runner
       def build_runner(options)
         initialize_runtime_logging
         load_plugins
@@ -57,15 +78,24 @@ module Kitchen
         runtime.runner_class.new(audit_config)
       end
 
+      # Points Cinc Auditor's logger at stderr, at Test Kitchen's level.
+      #
+      # @return [void]
       def initialize_runtime_logging
         runtime.log.init($stderr)
         runtime.log.level = Kitchen::Util.from_logger_level(logger.level)
       end
 
+      # @param options [Hash] runner options
+      # @return [Object] a Cinc Auditor config object
       def audit_config_for(options)
         runtime.config_class.new(options)
       end
 
+      # Adds every collected profile to the runner.
+      #
+      # @param runner [Object] the Cinc Auditor runner
+      # @return [void]
       def load_targets(runner)
         profile_context = nil
         collect_tests.each do |target|
@@ -75,53 +105,92 @@ module Kitchen
         log_profiles(profile_context || [])
       end
 
+      # Logs the name of each profile that was loaded.
+      #
+      # @param profile_context [Enumerable] loaded profiles
+      # @return [void]
       def log_profiles(profile_context)
         profile_context.each { |profile| logger.info("Loaded #{profile.name} ") }
       end
 
+      # Turns a runner exit code into success or a Test Kitchen failure.
+      #
+      # 101 is treated as success alongside 0: Cinc Auditor uses it for a run
+      # where every control was skipped, which is not a test failure.
+      #
+      # @param exit_code [Integer] the runner's exit status
+      # @return [void]
+      # @raise [Kitchen::ActionFailed] on any other exit code
       def verify_exit_code(exit_code)
         return if [0, 101].include?(exit_code)
 
         raise ActionFailed, "Cinc Auditor Runner returns #{exit_code}"
       end
 
+      # Applies input files, inline inputs, and waivers to the options.
+      #
+      # @param options [Hash] runner options, mutated in place
+      # @param audit_config [Hash] the verifier configuration
+      # @return [void]
       def setup_inputs(options, audit_config)
         InputOptions.new.apply(options, audit_config)
       end
 
+      # Loads Cinc Auditor plugins, when enabled.
+      #
+      # @return [void]
       def load_plugins
         PluginOptions.new(config, logger, runtime).load
       end
 
+      # Merges configured plugin settings into the runner config.
+      #
+      # @param audit_config [Object] the Cinc Auditor config object
+      # @return [void]
       def setup_plugin_config(audit_config)
         PluginOptions.new(config, logger, runtime).merge_into(audit_config)
       end
 
+      # Loads the Cinc Auditor runtime. Called by Test Kitchen.
+      #
+      # @return [void]
       def load_needed_dependencies!
         runtime.load!
       end
 
+      # @return [Array<Hash>] the suite's own profile, if it has one
       def local_suite_files
         profile_collection.local_suite_files
       end
 
+      # @return [Array] profiles named by the +inspec_tests+ option
       def resolve_config_inspec_tests
         profile_collection.configured_profiles
       end
 
+      # @return [Array] every profile to run, local and configured, deduplicated
       def collect_tests
         profile_collection.collect
       end
 
+      # Builds runner options for a transport.
+      #
+      # @param transport [Kitchen::Transport::Base] the configured transport
+      # @param state [Hash] instance state
+      # @param platform [String, nil] platform name, for output templating
+      # @param suite [String, nil] suite name, for output templating
+      # @return [Hash] runner options
       def runner_options(transport, state = {}, platform = nil, suite = nil)
         request = RunnerOptions::Request.new(transport: transport, state: state, platform: platform, suite: suite)
         RunnerOptions.new(instance, config, logger).build(request)
       end
 
+      # @return [ProfileCollection] resolver for this suite's profiles
       def profile_collection
         ProfileCollection.new(config, logger)
       end
 
+      # @return [Runtime] the loaded Cinc Auditor runtime
       def runtime
         @runtime ||= Runtime.new
       end

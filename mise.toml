@@ -17,6 +17,14 @@ run = "ruby script/run_tool ruby -c lib/kitchen/verifier/cinc_auditor.rb"
 description = "Run RubyCritic with the project quality threshold"
 run = "ruby script/run_tool rubycritic --no-browser --format console --minimum-score 70 lib"
 
+[tasks.doc]
+description = "Generate the YARD documentation into doc/"
+run = "ruby script/run_tool yard"
+
+[tasks.doc_coverage]
+description = "List anything in lib/ that is still undocumented"
+run = "ruby script/run_tool yard stats --list-undoc"
+
 [tasks.test]
 description = "Run all test and style checks"
 run = [

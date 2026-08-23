@@ -7,13 +7,34 @@ module Kitchen
     class CincAuditor
       # Combines transport-specific and common Cinc Auditor runner options.
       class RunnerOptions
+        # The inputs a runner-option build needs, kept together so the build
+        # can be called with one argument instead of four positional ones.
+        #
+        # @!attribute [rw] transport
+        #   @return [Kitchen::Transport::Base] the configured transport
+        # @!attribute [rw] state
+        #   @return [Hash] instance state
+        # @!attribute [rw] platform
+        #   @return [String, nil] platform name, for output templating
+        # @!attribute [rw] suite
+        #   @return [String, nil] suite name, for output templating
         Request = Struct.new(:transport, :state, :platform, :suite, keyword_init: true)
 
+        # @param instance [Kitchen::Instance] the instance under test
+        # @param config [Hash] the verifier configuration
+        # @param logger [Kitchen::Logger] where to report
         def initialize(instance, config, logger)
           @config = config
           @transport_options = TransportOptions.new(instance, config, logger)
         end
 
+        # Builds the complete runner options for one run.
+        #
+        # Transport-specific options come first, then the display, reporter,
+        # and control settings that apply whatever the transport.
+        #
+        # @param request [Request] what to build for
+        # @return [Hash] runner options
         def build(request)
           @request = request
           options = transport_options.build(request.transport, request.transport.diagnose.merge(request.state))
@@ -24,6 +45,10 @@ module Kitchen
 
         attr_reader :config, :request, :transport_options
 
+        # Adds the settings that apply regardless of transport.
+        #
+        # @param options [Hash] transport options, mutated in place
+        # @return [Hash] the same options
         def apply_common_options(options)
           options.tap do |runner_options|
             apply_display_options(runner_options)
@@ -33,6 +58,13 @@ module Kitchen
           end
         end
 
+        # Adds colour, format, output, and profile-path settings.
+        #
+        # Colour defaults to on: it is only disabled when +color+ is set to
+        # false explicitly, not merely left unset.
+        #
+        # @param options [Hash] runner options, mutated in place
+        # @return [void]
         def apply_display_options(options)
           options["color"] = config[:color].nil? || config[:color]
           set_if_configured(options, "format", :format)
@@ -40,6 +72,10 @@ module Kitchen
           set_if_configured(options, "profiles_path", :profiles_path)
         end
 
+        # Adds reporter settings, templating each one.
+        #
+        # @param options [Hash] runner options, mutated in place
+        # @return [void]
         def apply_reporters(options)
           return if config[:reporter].nil?
 
@@ -48,16 +84,34 @@ module Kitchen
           end
         end
 
+        # Copies a config value across only when it is set, leaving the
+        # runner's own default in place otherwise.
+        #
+        # @param options [Hash] runner options, mutated in place
+        # @param option_key [String, Symbol] key to write
+        # @param config_key [Symbol] key to read
+        # @return [void]
         def set_if_configured(options, option_key, config_key)
           options[option_key] = config[config_key] unless config[config_key].nil?
         end
 
+        # As {#set_if_configured}, but runs the value through templating.
+        #
+        # @param options [Hash] runner options, mutated in place
+        # @param option_key [String, Symbol] key to write
+        # @param config_key [Symbol] key to read
+        # @return [void]
         def set_formatted_if_configured(options, option_key, config_key)
           return if config[config_key].nil?
 
           options[option_key] = format_template(config[config_key])
         end
 
+        # Expands +%{platform}+ and +%{suite}+ in a value, so a reporter can
+        # write one file per instance rather than overwriting a shared one.
+        #
+        # @param value [String] the template
+        # @return [String] the expanded value
         def format_template(value)
           format(value, platform: request.platform, suite: request.suite)
         end
