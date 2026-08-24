@@ -6,8 +6,8 @@ task :spec do
   sh "mise run spec"
 end
 
-task :rubocop do
-  sh "mise run rubocop"
+task :cookstyle do
+  sh "mise run cookstyle"
 end
 
 task :syntax do
