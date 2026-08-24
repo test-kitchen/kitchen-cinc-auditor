@@ -49,8 +49,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: RuboCop
-            task: rubocop
+          - name: Cookstyle
+            task: cookstyle
           - name: Syntax
             task: syntax
     steps:
