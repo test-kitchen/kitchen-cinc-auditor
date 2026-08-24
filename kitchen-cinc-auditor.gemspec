@@ -29,7 +29,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "cinc-auditor-bin", ">= 7.1.7", "< 8.0"
   spec.add_dependency "hashie", ">= 3.4", "< 6.0"
-  spec.add_dependency "test-kitchen", ">= 2.7", "< 5"
+  spec.add_dependency "test-kitchen", ">= 3.0", "< 5"
   spec.add_dependency "train"
 
   spec.add_development_dependency "bundler"
