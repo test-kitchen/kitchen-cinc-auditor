@@ -50,10 +50,8 @@ verifier turns Test Kitchen configuration and transport state into a runner
 option hash, and that is all pure Ruby, so the specs stub the runtime and
 assert on the options.
 
-The spec run writes SimpleCov output to `coverage/`, including
-`coverage/.resultset.json`. RubyCritic reads that coverage data and enforces a
-minimum score of 70, so a change that significantly increases complexity can
-fail the build even when the tests pass.
+RubyCritic enforces a minimum score of 70, so a change that significantly
+increases complexity can fail the build even when the tests pass.
 
 ## Documentation
 
