@@ -205,6 +205,36 @@ RSpec.describe Kitchen::Verifier::CincAuditor do
     end
   end
 
+  context 'with the kitchen-docker transport' do
+    let(:transport) { double('Kitchen::Transport::Docker', name: 'Docker', diagnose: {}) }
+
+    before do
+      allow(transport).to receive(:instance).and_return(instance)
+    end
+
+    it 'uses the docker backend with the container id' do
+      options = verifier.send(:runner_options, transport, container_id: 'container-id')
+
+      expect(options).to include(
+        'backend' => 'docker',
+        'logger' => logger,
+        'host' => 'container-id'
+      )
+    end
+
+    it 'does not need the transport connection options' do
+      expect(transport).not_to receive(:connection_options)
+
+      verifier.send(:runner_options, transport, container_id: 'container-id')
+    end
+
+    it 'logs the container it connects to' do
+      verifier.send(:runner_options, transport, container_id: 'container-id')
+
+      expect(logged_output.string).to include('Connect to Container: container-id')
+    end
+  end
+
   context 'with dockercli transport' do
     let(:transport) { double('Kitchen::Transport::DockerCli', name: 'DockerCli', diagnose: {}) }
 

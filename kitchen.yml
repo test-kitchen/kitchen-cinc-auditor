@@ -1,0 +1,66 @@
+---
+# Integration coverage for the verifier itself.
+#
+# The driver and transport are kitchen-docker, so a suite here exercises the
+# whole path a user takes: Test Kitchen resolves this file, the driver starts a
+# container, and the verifier turns the transport state into Cinc Auditor
+# runner options and runs the profile against that container.
+#
+# There is nothing to converge -- the verifier is what is under test -- so the
+# provisioner is the no-op dummy and the controls only assert things that are
+# true of a freshly started container.
+driver:
+  name: docker
+
+transport:
+  name: docker
+
+provisioner:
+  name: dummy
+
+verifier:
+  name: cinc_auditor
+
+platforms:
+  - name: ubuntu-24.04
+  - name: almalinux-9
+
+suites:
+  # Profile discovery under test/integration/<suite>, over the Docker backend.
+  - name: default
+
+  # inputs, input_files and waiver_files all reach the runner.
+  - name: inputs
+    verifier:
+      inputs:
+        inline_input: from-kitchen-yml
+      input_files:
+        - test/fixtures/inputs/file_inputs.yml
+      waiver_files:
+        - test/fixtures/inputs/waivers.yml
+
+  # controls filters the run. `excluded-control` always fails, so the suite
+  # only passes if the filter is actually applied.
+  - name: controls
+    verifier:
+      controls:
+        - selected-control
+
+  # inspec_tests adds a profile outside the suite directory, and the local
+  # suite profile is still discovered and run alongside it.
+  - name: profiles
+    verifier:
+      inspec_tests:
+        - path: test/fixtures/profiles/extra
+
+  # The legacy per-framework layout: tests live in <suite>/inspec because the
+  # suite also holds tests for another framework.
+  - name: legacy-layout
+
+  # reporter and output templating. %{platform} and %{suite} are expanded, so
+  # each instance writes its own file rather than overwriting a shared one.
+  - name: reporter
+    verifier:
+      reporter:
+        - cli
+        - json:reports/%{platform}_%{suite}.json

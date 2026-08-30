@@ -142,8 +142,20 @@ replacements.
 
 ### Connection
 
-SSH, WinRM, Exec, Dokken, and Docker CLI transports are supported. Host and port
-normally come from Test Kitchen state and only need setting to override it.
+Host and port normally come from Test Kitchen state and only need setting to
+override it.
+
+| Transport | `transport: name:` | Cinc Auditor backend |
+| --- | --- | --- |
+| SSH | `ssh` | `ssh` |
+| WinRM | `winrm` | `winrm` |
+| Exec | `exec` | `local` |
+| [kitchen-docker](https://github.com/test-kitchen/kitchen-docker) | `docker` | `docker` |
+| [kitchen-dokken](https://github.com/test-kitchen/kitchen-dokken) | `dokken` | `docker` |
+| [kitchen-docker_cli](https://github.com/mfuchs/kitchen-docker_cli) | `docker_cli` | `docker` |
+
+Any other transport raises `Verifier cinc_auditor does not support the <name>
+Transport`.
 
 | Option | Default | Description |
 | --- | --- | --- |

@@ -60,16 +60,23 @@ module Kitchen
           }
         end
 
+        # kitchen-docker's transport runs commands with `docker exec`, and
+        # leaves the container id in the instance state, so the runner reaches
+        # the same container over Train's Docker backend.
+        #
+        # @param state [Hash] instance state, naming the container
+        # @return [Hash] runner options for the Docker backend
+        def build_docker(state)
+          container_backend_options(state[:container_id])
+        end
+
+        # kitchen-docker_cli's transport records the container the same way,
+        # under a differently named transport.
+        #
         # @param state [Hash] instance state, naming the container
         # @return [Hash] runner options for the Docker backend
         def build_dockercli(state)
-          options = {
-            "backend" => "docker",
-            "logger" => logger,
-            "host" => state[:container_id],
-          }
-          logger.debug("Connect to Container: #{options["host"]}")
-          options
+          container_backend_options(state[:container_id])
         end
 
         private
@@ -79,6 +86,18 @@ module Kitchen
         # @return [String] this verifier's name, for error messages
         def verifier_name
           "cinc_auditor"
+        end
+
+        # Runner options for reaching a container directly by id.
+        #
+        # @param container_id [String] the container to connect to
+        # @return [Hash] runner options for the Docker backend
+        def container_backend_options(container_id)
+          {
+            "backend" => "docker",
+            "logger" => logger,
+            "host" => container_id,
+          }.tap { |options| logger.debug("Connect to Container: #{options["host"]}") }
         end
 
         # The transport's own resolved connection settings.

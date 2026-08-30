@@ -1,0 +1,5 @@
+---
+waived-control:
+  expiration_date: 2099-12-31
+  run: false
+  justification: "Exercises the waiver_files verifier option"
