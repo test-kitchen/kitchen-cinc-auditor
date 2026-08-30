@@ -32,6 +32,13 @@ module Kitchen
 
           attr_reader :instance, :config, :logger
 
+          # @!attribute [r] instance
+          #   @return [Kitchen::Instance] the instance under test
+          # @!attribute [r] config
+          #   @return [Hash] the verifier configuration
+          # @!attribute [r] logger
+          #   @return [Kitchen::Logger] where to report
+
           # @param state [Hash] instance state
           # @return [Hash] the transport's resolved settings, safe to mutate
           def connection_options(state)
@@ -44,7 +51,7 @@ module Kitchen
           # pointed somewhere other than where the provisioner connected.
           #
           # @param kitchen [Hash] the transport's connection settings
-          # @return [Hash]
+          # @return [Hash] backend, sudo, destination, and connection settings
           def base_options(kitchen)
             {
               "backend" => "ssh",
@@ -62,7 +69,7 @@ module Kitchen
           # transport so the verifier connects on the same terms.
           #
           # @param kitchen [Hash] the transport's connection settings
-          # @return [Hash]
+          # @return [Hash] the keepalive, timeout, retry, and compression keys
           def connection_settings(kitchen)
             {
               "keepalive" => kitchen[:keepalive],
@@ -76,6 +83,8 @@ module Kitchen
             }
           end
 
+          # Adds the verifier's own proxy command, when set.
+          #
           # @param options [Hash] runner options, mutated in place
           # @return [void]
           def add_config_options(options)

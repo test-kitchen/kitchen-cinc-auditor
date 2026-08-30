@@ -16,6 +16,9 @@ module Kitchen
 
         # Loads all Cinc Auditor plugins, unless +load_plugins+ is disabled.
         #
+        # The loader reports its own failures and exits the process, so a
+        # broken plugin never reaches the run as a partially loaded one.
+        #
         # @return [void]
         def load
           return unless config[:load_plugins]
@@ -31,7 +34,7 @@ module Kitchen
         # Older Cinc Auditor versions have no plugin-config merging, so this
         # warns and skips rather than failing the run.
         #
-        # @param audit_config [Object] the Cinc Auditor config object
+        # @param audit_config [Inspec::Config] the Cinc Auditor config object
         # @return [void]
         def merge_into(audit_config)
           return unless config[:load_plugins]
@@ -45,7 +48,14 @@ module Kitchen
 
         attr_reader :config, :logger, :runtime
 
-        # @param audit_config [Object] the Cinc Auditor config object
+        # @!attribute [r] config
+        #   @return [Hash] the verifier configuration
+        # @!attribute [r] logger
+        #   @return [Kitchen::Logger] where to report
+        # @!attribute [r] runtime
+        #   @return [Runtime] the loaded Cinc Auditor runtime
+
+        # @param audit_config [Inspec::Config] the Cinc Auditor config object
         # @return [void]
         def merge_plugin_config(audit_config)
           config[:plugin_config].each do |plugin_name, plugin_config|

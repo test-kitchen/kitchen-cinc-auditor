@@ -32,6 +32,13 @@ module Kitchen
 
           attr_reader :instance, :config, :logger
 
+          # @!attribute [r] instance
+          #   @return [Kitchen::Instance] the instance under test
+          # @!attribute [r] config
+          #   @return [Hash] the verifier configuration
+          # @!attribute [r] logger
+          #   @return [Kitchen::Logger] where to report
+
           # @param state [Hash] instance state
           # @return [Hash] the transport's resolved settings, safe to mutate
           def connection_options(state)
@@ -44,7 +51,7 @@ module Kitchen
           # separately.
           #
           # @param endpoint [URI] the transport's WinRM endpoint
-          # @return [Hash]
+          # @return [Hash] the backend, TLS, host, and port keys
           def base_options(endpoint)
             {
               "backend" => "winrm",
@@ -58,7 +65,7 @@ module Kitchen
           # User, password, and self-signed certificate tolerance.
           #
           # @param kitchen [Hash] the transport's connection settings
-          # @return [Hash]
+          # @return [Hash] the user, password, and self-signed keys
           def auth_options(kitchen)
             {
               "self_signed" => kitchen[:no_ssl_peer_verification],
@@ -70,7 +77,7 @@ module Kitchen
           # Retry and wait settings carried over from the transport.
           #
           # @param kitchen [Hash] the transport's connection settings
-          # @return [Hash]
+          # @return [Hash] the retry and wait keys
           def retry_options(kitchen)
             {
               "connection_retries" => kitchen[:connection_retries],

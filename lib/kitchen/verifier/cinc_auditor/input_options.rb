@@ -35,6 +35,7 @@ module Kitchen
 
         # @param legacy_key [Symbol] the removed option
         # @param replacement_key [Symbol] what to use instead
+        # @return [void] never returns normally
         # @raise [Kitchen::UserError] always
         def raise_legacy_input_error(legacy_key, replacement_key)
           raise Kitchen::UserError,
