@@ -1,6 +1,7 @@
+---
 name: Release
 
-on:
+"on":
   push:
     branches:
       - main
@@ -31,42 +32,7 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  spec:
-    name: RSpec
-    runs-on: ubuntu-latest
-    needs: release
-    if: needs.release.outputs.release_created == 'true'
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout release tag
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ needs.release.outputs.tag_name }}
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: "3.4"
-          bundler-cache: true
-
-      - name: Set up mise
-        uses: jdx/mise-action@v4
-
-      - name: Run RSpec
-        env:
-          KITCHEN_CINC_AUDITOR_USE_BUNDLE: "true"
-        run: mise run spec
-
-      - name: Upload coverage
-        uses: actions/upload-artifact@v7
-        with:
-          name: release-simplecov-resultset
-          path: coverage/.resultset.json
-          include-hidden-files: true
-          if-no-files-found: error
-
-  static:
+  verify:
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
     needs: release
@@ -77,10 +43,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - name: Unit tests
+            command: bundle exec rake test
           - name: Cookstyle
-            task: cookstyle
-          - name: Syntax
-            task: syntax
+            command: bundle exec cookstyle --chefstyle
+          - name: RubyCritic
+            command: bundle exec rake quality
     steps:
       - name: Checkout release tag
         uses: actions/checkout@v7
@@ -92,58 +60,16 @@ jobs:
         with:
           ruby-version: "3.4"
           bundler-cache: true
-
-      - name: Set up mise
-        uses: jdx/mise-action@v4
 
       - name: Run ${{ matrix.name }}
-        env:
-          KITCHEN_CINC_AUDITOR_USE_BUNDLE: "true"
-        run: mise run ${{ matrix.task }}
-
-  rubycritic:
-    name: RubyCritic
-    runs-on: ubuntu-latest
-    needs:
-      - release
-      - spec
-    if: needs.release.outputs.release_created == 'true'
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout release tag
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ needs.release.outputs.tag_name }}
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: "3.4"
-          bundler-cache: true
-
-      - name: Set up mise
-        uses: jdx/mise-action@v4
-
-      - name: Download coverage
-        uses: actions/download-artifact@v8
-        with:
-          name: release-simplecov-resultset
-          path: coverage
-
-      - name: Run RubyCritic
-        env:
-          KITCHEN_CINC_AUDITOR_USE_BUNDLE: "true"
-        run: mise run rubycritic
+        run: ${{ matrix.command }}
 
   publish:
     name: Publish gem
     runs-on: ubuntu-latest
     needs:
       - release
-      - spec
-      - static
-      - rubycritic
+      - verify
     if: needs.release.outputs.release_created == 'true'
     environment: rubygems
     permissions:

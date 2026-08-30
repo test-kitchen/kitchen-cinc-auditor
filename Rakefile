@@ -2,30 +2,43 @@
 
 require "bundler/gem_tasks"
 
-task :spec do
-  sh "mise run spec"
+require "rspec/core/rake_task"
+RSpec::Core::RakeTask.new(:unit)
+
+desc "Run all unit tests"
+task test: %i{unit}
+
+begin
+  require "cookstyle/chefstyle"
+  require "rubocop/rake_task"
+  RuboCop::RakeTask.new(:style) do |task|
+    task.options += ["--display-cop-names", "--no-color"]
+  end
+rescue LoadError
+  puts "cookstyle/chefstyle is not available. (sudo) gem install cookstyle to do style checking."
 end
 
-task :cookstyle do
-  sh "mise run cookstyle"
+desc "Run RubyCritic over lib/, failing below the project quality score"
+task :quality do
+  sh "rubycritic --no-browser --format console --minimum-score 70 lib"
 end
 
-task :syntax do
-  sh "mise run syntax"
+begin
+  require "yard"
+
+  # Options and the file list live in .yardopts so that a bare `yard` from the
+  # command line produces exactly what `rake doc` does.
+  YARD::Rake::YardocTask.new(:doc)
+
+  desc "List anything in lib/ that is still undocumented"
+  task :doc_coverage do
+    sh "yard stats --list-undoc"
+  end
+rescue LoadError
+  desc "Generate YARD documentation (not installed)"
+  task :doc do
+    abort "YARD is not installed. Run: bundle install"
+  end
 end
 
-task :test do
-  sh "mise run test"
-end
-
-desc "Generate the YARD documentation into doc/"
-task :doc do
-  sh "mise run doc"
-end
-
-desc "List anything in lib/ that is still undocumented"
-task :doc_coverage do
-  sh "mise run doc_coverage"
-end
-
-task default: :test
+task default: %i{style test}
