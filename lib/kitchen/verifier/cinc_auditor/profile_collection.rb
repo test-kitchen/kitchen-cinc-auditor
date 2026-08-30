@@ -27,14 +27,14 @@ module Kitchen
 
         # Every profile to run: the suite's own, plus those configured.
         #
-        # @return [Array] profile paths and hashes, deduplicated
+        # @return [Array<Hash, String>] profile paths and hashes, deduplicated
         def collect
           (local_suite_files + configured_profiles).compact.uniq
         end
 
         # Profiles named by the +inspec_tests+ option.
         #
-        # @return [Array] one entry per configured profile
+        # @return [Array<Hash, String, nil>] one entry per configured profile
         def configured_profiles
           config[:inspec_tests].map { |entry| configured_profile(entry) }
         end
@@ -53,11 +53,19 @@ module Kitchen
 
         attr_reader :config, :logger
 
+        # @!attribute [r] config
+        #   @return [Hash] the verifier configuration
+        # @!attribute [r] logger
+        #   @return [Kitchen::Logger] where to report
+
         # Detects the legacy layout, where tests sit in a framework-named
         # subdirectory of the suite rather than the suite directory itself.
         #
+        # Every framework is checked rather than stopping at the first, so
+        # that each one found is logged.
+        #
         # @param suite_path [String] the suite directory
-        # @return [Boolean]
+        # @return [Boolean] true when any framework subdirectory exists
         def legacy_layout?(suite_path)
           legacy_mode = false
 
@@ -81,7 +89,8 @@ module Kitchen
         #
         # @param entry [Hash, String] a profile hash, a local path, or a
         #   remote identifier passed through untouched
-        # @return [Hash, String, nil]
+        # @return [Hash, String, nil] the normalized entry, nil when a hash
+        #   entry names nothing the runner understands
         def configured_profile(entry)
           return profile_hash(entry) if entry.is_a?(Hash)
           return { path: File.expand_path(entry) } if File.exist?(entry)

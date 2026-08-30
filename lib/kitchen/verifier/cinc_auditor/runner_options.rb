@@ -18,6 +18,18 @@ module Kitchen
         #   @return [String, nil] platform name, for output templating
         # @!attribute [rw] suite
         #   @return [String, nil] suite name, for output templating
+        # @!method transport=(value)
+        #   @param value [Kitchen::Transport::Base] the transport to build for
+        #   @return [Kitchen::Transport::Base] the value written
+        # @!method state=(value)
+        #   @param value [Hash] the instance state to build from
+        #   @return [Hash] the value written
+        # @!method platform=(value)
+        #   @param value [String, nil] the platform name to template with
+        #   @return [String, nil] the value written
+        # @!method suite=(value)
+        #   @param value [String, nil] the suite name to template with
+        #   @return [String, nil] the value written
         Request = Struct.new(:transport, :state, :platform, :suite, keyword_init: true)
 
         # @param instance [Kitchen::Instance] the instance under test
@@ -35,6 +47,7 @@ module Kitchen
         #
         # @param request [Request] what to build for
         # @return [Hash] runner options
+        # @raise [Kitchen::UserError] if the transport is not supported
         def build(request)
           @request = request
           options = transport_options.build(request.transport, request.transport.diagnose.merge(request.state))
@@ -44,6 +57,13 @@ module Kitchen
         private
 
         attr_reader :config, :request, :transport_options
+
+        # @!attribute [r] config
+        #   @return [Hash] the verifier configuration
+        # @!attribute [r] request
+        #   @return [Request, nil] the request being built, nil before {#build}
+        # @!attribute [r] transport_options
+        #   @return [TransportOptions] builder for the transport-specific half
 
         # Adds the settings that apply regardless of transport.
         #
@@ -112,6 +132,8 @@ module Kitchen
         #
         # @param value [String] the template
         # @return [String] the expanded value
+        # @raise [KeyError] if the template names anything but +platform+ or
+        #   +suite+
         def format_template(value)
           format(value, platform: request.platform, suite: request.suite)
         end

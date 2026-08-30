@@ -16,6 +16,7 @@ module Kitchen
         # dist shim redefines constants on load.
         #
         # @return [void]
+        # @raise [LoadError] if the Cinc Auditor runtime is not installed
         def load!
           with_warnings_suppressed do
             require "inspec/dist"
@@ -24,11 +25,17 @@ module Kitchen
           end
         end
 
+        # The branded product name, falling back to Cinc Auditor's own when
+        # the loaded runtime carries no branding constants.
+        #
         # @return [String] the product's display name, e.g. +"Cinc Auditor"+
         def product_name
           dist_const(:PRODUCT_NAME) || "Cinc Auditor"
         end
 
+        # The branded executable name, falling back to Cinc Auditor's own when
+        # the loaded runtime carries no branding constants.
+        #
         # @return [String] the CLI's name, e.g. +"cinc-auditor"+
         def executable_name
           dist_const(:EXEC_NAME) || "cinc-auditor"
@@ -39,17 +46,17 @@ module Kitchen
           api.const_get(:VERSION)
         end
 
-        # @return [Class] the runtime's logger
+        # @return [Class] the runtime's logger, +Inspec::Log+
         def log
           api.const_get(:Log)
         end
 
-        # @return [Class] the runtime's configuration class
+        # @return [Class] the runtime's configuration class, +Inspec::Config+
         def config_class
           api.const_get(:Config)
         end
 
-        # @return [Class] the runtime's runner class
+        # @return [Class] the runtime's runner class, +Inspec::Runner+
         def runner_class
           api.const_get(:Runner)
         end
@@ -59,7 +66,7 @@ module Kitchen
           api.const_get(:Plugin).const_get(:V2).const_get(:Loader)
         end
 
-        # @return [Object] the runtime's input registry singleton
+        # @return [Inspec::InputRegistry] the runtime's input registry singleton
         def input_registry
           api.const_get(:InputRegistry).instance
         end
@@ -71,7 +78,7 @@ module Kitchen
         # Cinc Auditor keeps the +Inspec+ namespace deliberately, so that
         # profiles and plugins written for either work unchanged.
         #
-        # @return [Module]
+        # @return [Module] the +Inspec+ module
         def api
           ::Inspec
         end
@@ -79,7 +86,8 @@ module Kitchen
         # Reads a branding constant, tolerating a runtime without them.
         #
         # @param name [Symbol] the constant to read
-        # @return [String, nil] nil when the runtime defines no Dist module
+        # @return [String, nil] nil when the runtime defines no Dist module,
+        #   or defines one without that constant
         def dist_const(name)
           return unless api.const_defined?(:Dist, false)
 

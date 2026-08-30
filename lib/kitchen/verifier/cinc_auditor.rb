@@ -23,7 +23,7 @@ module Kitchen
       # Points the verifier at `test/recipes` when that directory exists.
       #
       # @param instance [Kitchen::Instance] the instance being configured
-      # @return [self]
+      # @return [self] this verifier, as Test Kitchen's plugin API expects
       def finalize_config!(instance)
         super
 
@@ -37,6 +37,8 @@ module Kitchen
       #
       # @param state [Hash] instance state describing how to connect
       # @return [void]
+      # @raise [Kitchen::UserError] if the transport is unsupported or the
+      #   configuration names a removed input option
       # @raise [Kitchen::ActionFailed] if the run reports a failing exit code
       def call(state)
         logger.debug("Initialize Cinc Auditor")
@@ -52,6 +54,8 @@ module Kitchen
       #
       # @param state [Hash] instance state
       # @return [Hash] runner options, inputs applied
+      # @raise [Kitchen::UserError] if the configuration names a removed
+      #   input option
       def run_options(state)
         runner_options_for_state(state).tap do |options|
           logger.debug("Options #{options.inspect}")
@@ -61,6 +65,7 @@ module Kitchen
 
       # @param state [Hash] instance state
       # @return [Hash] runner options for the configured transport
+      # @raise [Kitchen::UserError] if the transport is not supported
       def runner_options_for_state(state)
         runner_options(instance.transport, state, instance.platform.name, instance.suite.name)
       end
@@ -68,7 +73,7 @@ module Kitchen
       # Loads the runtime, its plugins, and builds a runner.
       #
       # @param options [Hash] runner options
-      # @return [Object] a Cinc Auditor runner
+      # @return [Inspec::Runner] a runner configured for this instance
       def build_runner(options)
         initialize_runtime_logging
         load_plugins
@@ -87,14 +92,14 @@ module Kitchen
       end
 
       # @param options [Hash] runner options
-      # @return [Object] a Cinc Auditor config object
+      # @return [Inspec::Config] the runner configuration for those options
       def audit_config_for(options)
         runtime.config_class.new(options)
       end
 
       # Adds every collected profile to the runner.
       #
-      # @param runner [Object] the Cinc Auditor runner
+      # @param runner [Inspec::Runner] the Cinc Auditor runner
       # @return [void]
       def load_targets(runner)
         profile_context = nil
@@ -115,12 +120,18 @@ module Kitchen
 
       # Turns a runner exit code into success or a Test Kitchen failure.
       #
-      # 101 is treated as success alongside 0: Cinc Auditor uses it for a run
-      # where every control was skipped, which is not a test failure.
+      # Cinc Auditor distinguishes its outcomes: 0 is a clean run, 100 means
+      # at least one control failed or errored, 101 means at least one control
+      # was skipped and none failed, and 102 means a profile could not be
+      # loaded. 1 covers usage and general errors, and is also what the
+      # runner returns for a failure when distinct exit codes are turned off.
+      #
+      # 101 is treated as success alongside 0, because a skip is not a test
+      # failure. Every other code fails the verify action.
       #
       # @param exit_code [Integer] the runner's exit status
       # @return [void]
-      # @raise [Kitchen::ActionFailed] on any other exit code
+      # @raise [Kitchen::ActionFailed] on any code other than 0 or 101
       def verify_exit_code(exit_code)
         return if [0, 101].include?(exit_code)
 
@@ -132,6 +143,7 @@ module Kitchen
       # @param options [Hash] runner options, mutated in place
       # @param audit_config [Hash] the verifier configuration
       # @return [void]
+      # @raise [Kitchen::UserError] if a removed legacy input option is set
       def setup_inputs(options, audit_config)
         InputOptions.new.apply(options, audit_config)
       end
@@ -145,7 +157,7 @@ module Kitchen
 
       # Merges configured plugin settings into the runner config.
       #
-      # @param audit_config [Object] the Cinc Auditor config object
+      # @param audit_config [Inspec::Config] the Cinc Auditor config object
       # @return [void]
       def setup_plugin_config(audit_config)
         PluginOptions.new(config, logger, runtime).merge_into(audit_config)
@@ -154,6 +166,7 @@ module Kitchen
       # Loads the Cinc Auditor runtime. Called by Test Kitchen.
       #
       # @return [void]
+      # @raise [LoadError] if the Cinc Auditor runtime is not installed
       def load_needed_dependencies!
         runtime.load!
       end
@@ -163,12 +176,14 @@ module Kitchen
         profile_collection.local_suite_files
       end
 
-      # @return [Array] profiles named by the +inspec_tests+ option
+      # @return [Array<Hash, String, nil>] profiles named by the +inspec_tests+
+      #   option; a configured hash naming no runner key resolves to nil
       def resolve_config_inspec_tests
         profile_collection.configured_profiles
       end
 
-      # @return [Array] every profile to run, local and configured, deduplicated
+      # @return [Array<Hash, String>] every profile to run, local and
+      #   configured, deduplicated
       def collect_tests
         profile_collection.collect
       end
@@ -180,6 +195,7 @@ module Kitchen
       # @param platform [String, nil] platform name, for output templating
       # @param suite [String, nil] suite name, for output templating
       # @return [Hash] runner options
+      # @raise [Kitchen::UserError] if the transport is not supported
       def runner_options(transport, state = {}, platform = nil, suite = nil)
         request = RunnerOptions::Request.new(transport: transport, state: state, platform: platform, suite: suite)
         RunnerOptions.new(instance, config, logger).build(request)
