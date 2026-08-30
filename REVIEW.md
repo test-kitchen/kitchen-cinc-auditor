@@ -8,7 +8,7 @@
 
 ## Summary
 
-Reviewed the current `kitchen-cinc-auditor` implementation after the Chef Workstation 26 baseline update and Cinc runtime pass. No critical correctness or security issue was found. The full mise quality gate passes, SimpleCov is configured, RubyCritic is above the requested threshold, the legacy input aliases now fail fast, and the RubyGems publish action is pinned to the reviewed `v0.0.3` commit.
+Reviewed the current `kitchen-cinc-auditor` implementation after the Chef Workstation 26 baseline update and Cinc runtime pass. No critical correctness or security issue was found. The full mise quality gate passes, RubyCritic is above the requested threshold, the legacy input aliases now fail fast, and the RubyGems publish action is pinned to the reviewed `v0.0.3` commit.
 
 ## Critical Issues
 
@@ -36,13 +36,9 @@ No application-level security issue was found in the Ruby verifier code. There i
 
 ## Test Coverage
 
-SimpleCov is configured and produces `coverage/.resultset.json`.
+The specs cover the verifier end to end: inputs, waivers, profile discovery, runner lifecycle, exit codes, unsupported transports, and the per-transport option mapping.
 
-- Line coverage: **97.67%**
-- Branch coverage: **92.59%**
-- Files with under 90% line coverage among loaded `lib/` files: none
-
-The uncovered dependency-loading hook is intentionally stubbed in specs to avoid loading the full Cinc Auditor runtime.
+The dependency-loading hook is intentionally stubbed in specs to avoid loading the full Cinc Auditor runtime.
 
 ## Tool Reports
 
@@ -51,11 +47,6 @@ The uncovered dependency-loading hook is intentionally stubbed in specs to avoid
 - **Overall score**: 75.77
 - **Threshold**: 70, enforced by `mise run rubycritic`
 - **Result**: passed
-
-### SimpleCov Summary
-
-- **Total Coverage**: 97.67% line, 92.59% branch
-- **Coverage artifact**: `coverage/.resultset.json`
 
 ### Other Checks
 
@@ -67,7 +58,7 @@ The uncovered dependency-loading hook is intentionally stubbed in specs to avoid
 
 ## Recommendations
 
-1. Keep the release pipeline, SimpleCov, RuboCop, syntax check, and RubyCritic gates in the mise harness.
+1. Keep the release pipeline, RuboCop, syntax check, and RubyCritic gates in the mise harness.
 2. Keep watching `RunnerOptions` as new transport behavior is added; it is improved, but still the most natural place for option-formatting complexity to return.
 3. Pin additional GitHub Actions to commit SHAs before production hardening if the project wants a stricter supply-chain posture across the whole workflow.
 

@@ -15,7 +15,6 @@ group :test do
   gem "rake"
   gem "rspec", ">= 3.0"
   gem "rubycritic", ">= 4.9"
-  gem "simplecov", ">= 0.22"
 end
 
 group :docs do

@@ -1,15 +1,5 @@
 # frozen_string_literal: true
 
-require "simplecov"
-
-SimpleCov.start do
-  enable_coverage :branch
-  primary_coverage :line
-
-  add_filter "/spec/"
-  add_group "Library", "lib"
-end
-
 require "tmpdir"
 require "fileutils"
 require "logger"
