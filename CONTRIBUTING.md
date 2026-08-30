@@ -13,50 +13,63 @@ Report bugs and request features on the [issue tracker](https://github.com/test-
 
 ## Development setup
 
-The project uses [mise](https://mise.jdx.dev/) to pin the toolchain. The
-development toolchain targets **Ruby 3.4**, matching the Ruby line used by Chef
-Workstation 26, while the gem itself supports Ruby 3.1 or later at runtime.
-
 ```sh
 git clone https://github.com/test-kitchen/kitchen-cinc-auditor.git
 cd kitchen-cinc-auditor
-mise install
 bundle install
 ```
 
+The gem supports Ruby 3.1 or later, and CI runs the unit tests across the whole
+supported range.
+
 ## Running the checks
 
-Run the full local check suite:
-
 ```sh
-mise run test
+bundle exec rake                  # style and unit tests -- what CI runs
+bundle exec rake test             # unit tests only (alias: rake unit)
+bundle exec rake style            # Cookstyle with the Chefstyle rules
+bundle exec rake quality          # RubyCritic, minimum score 70
 ```
 
-That runs the RSpec suite, RuboCop, a syntax check of the verifier entrypoint,
-and RubyCritic. The individual tasks are:
+To run a single spec file, or a single example:
 
 ```sh
-mise run spec        # RSpec
-mise run rubocop     # RuboCop
-mise run syntax      # ruby -c on the verifier entrypoint
-mise run rubycritic  # RubyCritic, minimum score 70
+bundle exec rspec spec/kitchen/verifier/cinc_auditor/transports_spec.rb
+bundle exec rspec spec/kitchen/verifier/cinc_auditor/transports_spec.rb:42
 ```
 
-CI and the release workflow run these as separate jobs, so RSpec, RuboCop, and
-the syntax check run in parallel. RubyCritic runs after RSpec because it
-consumes the SimpleCov result artifact.
+Cookstyle must be run with the `--chefstyle` flag. A bare `cookstyle` run
+applies the cookbook cops, which do not apply to a gem:
 
-The spec task writes SimpleCov output to `coverage/`, including
+```sh
+bundle exec cookstyle --chefstyle
+```
+
+The unit tests never talk to a Cinc Auditor runtime or a real instance. The
+verifier turns Test Kitchen configuration and transport state into a runner
+option hash, and that is all pure Ruby, so the specs stub the runtime and
+assert on the options.
+
+The spec run writes SimpleCov output to `coverage/`, including
 `coverage/.resultset.json`. RubyCritic reads that coverage data and enforces a
 minimum score of 70, so a change that significantly increases complexity can
 fail the build even when the tests pass.
+
+## Documentation
+
+Public API documentation is written as YARD comments in `lib/`:
+
+```sh
+bundle exec rake doc            # generate doc/
+bundle exec rake doc_coverage   # list anything still undocumented
+```
 
 ## Submitting changes
 
 1. Fork the repository.
 2. Create a feature branch off `main`.
 3. Make your change, adding or updating specs to cover it.
-4. Make sure `mise run test` passes.
+4. Make sure `bundle exec rake` passes.
 5. Use [conventional commits](https://www.conventionalcommits.org/) — release
    automation depends on them, see below.
 6. Push the branch to your fork and open a pull request.
