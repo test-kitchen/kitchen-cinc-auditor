@@ -1,44 +1,53 @@
 # frozen_string_literal: true
 
-require 'kitchen/verifier/cinc_auditor'
-require 'kitchen/transport/exec'
-require 'kitchen/transport/ssh'
-require 'kitchen/transport/winrm'
+require "kitchen"
+require "kitchen/verifier/cinc_auditor"
+require "kitchen/transport/exec"
+require "kitchen/transport/ssh"
+require "kitchen/transport/winrm"
 
-RSpec.shared_context 'with a Cinc Auditor verifier' do
+RSpec.shared_context "with a Cinc Auditor verifier" do
   let(:kitchen_root) { Dir.mktmpdir }
   let(:logged_output) { StringIO.new }
   let(:logger) { Logger.new(logged_output) }
-  let(:platform) { instance_double('Kitchen::Platform', name: 'ubuntu') }
-  let(:suite) { instance_double('Kitchen::Suite', name: 'default') }
+  let(:platform) { instance_double(Kitchen::Platform, name: "ubuntu") }
+  let(:suite) { instance_double(Kitchen::Suite, name: "default") }
   let(:transport_config) { {} }
   let(:transport) { Kitchen::Transport::Exec.new(transport_config) }
   let(:config) do
     {
       kitchen_root: kitchen_root,
-      test_base_path: File.join(kitchen_root, 'test', 'integration'),
+      test_base_path: File.join(kitchen_root, "test", "integration"),
       backend_cache: true,
       reporter: [
-        'cli',
-        'junit:path/to/results/%{platform}_%{suite}_cinc_auditor.xml'
-      ]
+        "cli",
+        "junit:path/to/results/%{platform}_%{suite}_cinc_auditor.xml",
+      ],
     }
   end
   let(:instance) do
     instance_double(
-      'Kitchen::Instance',
-      name: 'default-ubuntu',
+      Kitchen::Instance,
+      name: "default-ubuntu",
       logger: logger,
       platform: platform,
       suite: suite,
       transport: transport,
-      to_str: 'instance'
+      to_str: "instance"
     )
   end
-  let(:verifier) { described_class.new(config).finalize_config!(instance) }
+
+  # Test Kitchen calls load_needed_dependencies! from finalize_config!, and
+  # that is the one method here that does load the real runtime, so it is
+  # stubbed on this instance rather than on the class. Its own behaviour is
+  # covered directly in the verifier spec.
+  let(:verifier) do
+    described_class.new(config).tap do |verifier_instance|
+      allow(verifier_instance).to receive(:load_needed_dependencies!)
+    end.finalize_config!(instance)
+  end
 
   before do
-    allow_any_instance_of(described_class).to receive(:load_needed_dependencies!)
     allow(transport).to receive(:instance).and_return(instance)
   end
 
@@ -57,8 +66,8 @@ RSpec.shared_context 'with a Cinc Auditor verifier' do
   end
 
   def fake_cinc_runtime(log_class:, config_class:, runner_class:)
-    double(
-      'Cinc Auditor runtime',
+    instance_double(
+      Kitchen::Verifier::CincAuditor::Runtime,
       log: log_class,
       config_class: config_class,
       runner_class: runner_class
