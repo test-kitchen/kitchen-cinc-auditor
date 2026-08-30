@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.2](https://github.com/test-kitchen/kitchen-cinc-auditor/compare/kitchen-cinc-auditor/v0.2.1...kitchen-cinc-auditor/v0.2.2) (2026-08-30)
+
+
+### Bug Fixes
+
+* drop the unused train runtime dependency ([#23](https://github.com/test-kitchen/kitchen-cinc-auditor/issues/23)) ([9089f81](https://github.com/test-kitchen/kitchen-cinc-auditor/commit/9089f81938d38268fb87f7b7aaace2af61893a07))
+* require test-kitchen 3.0 or newer ([#21](https://github.com/test-kitchen/kitchen-cinc-auditor/issues/21)) ([9af8401](https://github.com/test-kitchen/kitchen-cinc-auditor/commit/9af84011f7259007df09ad59a8a61a29a29fe35b))
+
 ## [0.2.1](https://github.com/test-kitchen/kitchen-cinc-auditor/compare/kitchen-cinc-auditor/v0.2.0...kitchen-cinc-auditor/v0.2.1) (2026-08-23)
 
 
