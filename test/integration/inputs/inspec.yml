@@ -1,0 +1,17 @@
+---
+name: inputs
+title: Verifier input handling
+maintainer: CINC Project
+copyright: CINC Project
+license: Apache-2.0
+summary: Exercises the inputs, input_files and waiver_files verifier options
+version: 0.1.0
+supports:
+  - platform: os
+inputs:
+  - name: inline_input
+    type: string
+    value: unset
+  - name: file_input
+    type: string
+    value: unset

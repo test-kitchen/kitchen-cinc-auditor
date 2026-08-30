@@ -1,0 +1,10 @@
+---
+name: extra
+title: A profile outside the suite directory
+maintainer: CINC Project
+copyright: CINC Project
+license: Apache-2.0
+summary: Reached through the inspec_tests verifier option
+version: 0.1.0
+supports:
+  - platform: os

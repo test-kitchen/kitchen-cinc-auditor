@@ -1,0 +1,50 @@
+---
+name: Integration Tests
+
+"on":
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  kitchen:
+    name: ${{ matrix.suite }} on ${{ matrix.os }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        suite:
+          - default
+          - inputs
+          - controls
+          - profiles
+          - legacy-layout
+          - reporter
+        os:
+          - ubuntu-2404
+          - almalinux-9
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Test Kitchen
+        run: bundle exec kitchen test ${{ matrix.suite }}-${{ matrix.os }}
+
+      - name: Check the templated reporter output
+        if: matrix.suite == 'reporter'
+        run: |
+          ls -l reports
+          test -s reports/*_reporter.json

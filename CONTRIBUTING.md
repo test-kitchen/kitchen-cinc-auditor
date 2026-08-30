@@ -51,6 +51,38 @@ The spec task writes SimpleCov output to `coverage/`, including
 minimum score of 70, so a change that significantly increases complexity can
 fail the build even when the tests pass.
 
+## Running the integration tests
+
+The checks above never start a container. The integration suites do: they drive
+the verifier through a real Test Kitchen run, with kitchen-docker as the driver
+and transport, so the whole path is exercised -- Test Kitchen resolves
+`kitchen.yml`, the driver starts a container, and the verifier turns the
+transport state into Cinc Auditor runner options and runs the profile against
+that container.
+
+They need a Docker daemon, and nothing else:
+
+```sh
+bundle exec kitchen list
+bundle exec kitchen test default-ubuntu-2404
+bundle exec kitchen test               # every suite on every platform
+```
+
+There is nothing to converge, so the provisioner is the no-op dummy and the
+controls only assert things that hold for a freshly started container. Each
+suite covers one behaviour of the verifier:
+
+| Suite | What it proves |
+| --- | --- |
+| `default` | Profile discovery under `test/integration/<suite>`, run over the Docker backend. |
+| `inputs` | `inputs`, `input_files` and `waiver_files` reach the runner. The waived control fails on purpose. |
+| `controls` | `controls` filters the run. `excluded-control` fails on purpose, so the suite is red if the filter is not applied. |
+| `profiles` | `inspec_tests` adds a profile from outside the suite directory, and the local suite profile still runs alongside it. |
+| `legacy-layout` | The per-framework layout, where the profile lives in `<suite>/inspec` because the suite holds tests for another framework too. |
+| `reporter` | Reporter templating. CI checks that the `%{platform}`/`%{suite}` file was written. |
+
+When you add a verifier option, add a suite that proves it reaches the runner.
+
 ## Submitting changes
 
 1. Fork the repository.

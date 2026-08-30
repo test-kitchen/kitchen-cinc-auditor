@@ -7,6 +7,7 @@ AllCops:
   Exclude:
     - "vendor/**/*"
     - "spec/**/*"
+    - "test/**/*"
 
 Metrics/BlockLength:
   Exclude:

@@ -7,6 +7,14 @@ source "https://rubygems.cinc.sh" do
 end
 
 gemspec development_group: :test
+
+# Integration testing. `kitchen test` drives the verifier through a real Test
+# Kitchen run against a container. The unit tests do not need any of this, so
+# CI installs the unit-test matrix with BUNDLE_WITHOUT=development.
+group :development do
+  gem "kitchen-docker"
+end
+
 group :cookstyle do
   gem "cookstyle"
 end
