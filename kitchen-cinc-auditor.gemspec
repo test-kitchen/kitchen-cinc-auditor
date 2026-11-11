@@ -28,6 +28,6 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= 3.1"
 
   spec.add_dependency "cinc-auditor-bin", ">= 7.1.7", "< 8.0"
-  spec.add_dependency "hashie", ">= 3.4", "< 6.0"
+  spec.add_dependency "hashie", ">= 3.4", "< 6.1"
   spec.add_dependency "test-kitchen", ">= 3.0", "< 5"
 end
